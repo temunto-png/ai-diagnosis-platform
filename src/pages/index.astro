@@ -1,0 +1,30 @@
+---
+import Base from "../layouts/Base.astro";
+import { listApps } from "../configs/index";
+
+const apps = listApps();
+---
+
+<Base
+  title="AI画像診断ツール一覧"
+  description="撮影するだけでAIが診断・おすすめ商品を提案する無料ツール集"
+>
+  <h1>AI画像診断ツール</h1>
+  <p>画像を撮影するだけでAIが診断し、おすすめ商品を提案します。</p>
+
+  <ul>
+    {apps.map((app) => (
+      <li>
+        <a href={`/${app.id}/`}>
+          <strong>{app.name}</strong>
+          <span>{app.description}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <section>
+    <h2>使い方ガイド</h2>
+    <p>DIY補修・カビ対策などの詳しい方法は<a href="/guide/">ガイド記事</a>をご覧ください。</p>
+  </section>
+</Base>

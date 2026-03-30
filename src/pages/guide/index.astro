@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+const articles = (await getCollection("guide")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<Base
+  title="DIY補修・日用品ガイド | AI診断ツール使い方"
+  description="壁紙補修・カビ対策・タイヤチェックなどDIY・日用品の使い方ガイド記事一覧"
+>
+  <h1>使い方ガイド</h1>
+  <ul>
+    {articles.map((article) => (
+      <li>
+        <a href={`/guide/${article.id}/`}>
+          <strong>{article.data.title}</strong>
+          <span>{article.data.description}</span>
+          <time datetime={article.data.pubDate.toISOString()}>
+            {article.data.pubDate.toLocaleDateString("ja-JP")}
+          </time>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>

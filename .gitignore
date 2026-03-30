@@ -3,3 +3,7 @@
 node_modules/
 dist/
 .cloudflare/
+key.txt
+.claude/
+.astro/
+.wrangler/

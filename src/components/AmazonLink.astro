@@ -1,0 +1,13 @@
+---
+interface Props {
+  keyword: string;
+}
+
+const { keyword } = Astro.props;
+const associateId = import.meta.env.PUBLIC_AMAZON_ASSOCIATE_ID ?? "yoursite-22";
+const url = `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${associateId}`;
+---
+
+<a href={url} target="_blank" rel="noopener noreferrer">
+  <slot />
+</a>

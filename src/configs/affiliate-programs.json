@@ -1,0 +1,38 @@
+{
+  "programs": [
+    {
+      "id": "a8-base",
+      "name": "A8.net",
+      "asp": "a8",
+      "status": "account_registered",
+      "site_add_required": true,
+      "media_url": "https://example.com/guide/"
+    },
+    {
+      "id": "moshimo-base",
+      "name": "もしもアフィリエイト",
+      "asp": "moshimo",
+      "status": "account_registered",
+      "site_add_required": true,
+      "media_url": "https://example.com/guide/"
+    },
+    {
+      "id": "amazon-associate",
+      "name": "Amazonアソシエイト（本家）",
+      "asp": "amazon-direct",
+      "status": "pending",
+      "associate_id": "",
+      "applied_at": null,
+      "deadline_180day": null,
+      "sales_count": 0,
+      "sales_needed": 3
+    },
+    {
+      "id": "google-adsense",
+      "name": "Googleアドセンス",
+      "asp": "google",
+      "status": "pending",
+      "client_id": ""
+    }
+  ]
+}
