@@ -5,3 +5,5 @@ dist/
 .cloudflare/
 key.txt
 .claude/
+.astro/
+.wrangler/
