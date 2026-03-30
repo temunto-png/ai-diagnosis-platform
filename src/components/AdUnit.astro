@@ -1,0 +1,20 @@
+---
+const adsenseId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
+---
+
+{adsenseId && (
+  <div>
+    <!-- AdSense承認後に以下のコメントアウトを解除し、data-ad-slotを設定する -->
+    <!--
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={adsenseId}
+      data-ad-slot="XXXXXXXXXX"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    -->
+  </div>
+)}
