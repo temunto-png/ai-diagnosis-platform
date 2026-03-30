@@ -15,7 +15,7 @@ const articles = (await getCollection("guide")).sort(
   <ul>
     {articles.map((article) => (
       <li>
-        <a href={`/guide/${article.slug}/`}>
+        <a href={`/guide/${article.id}/`}>
           <strong>{article.data.title}</strong>
           <span>{article.data.description}</span>
           <time datetime={article.data.pubDate.toISOString()}>
