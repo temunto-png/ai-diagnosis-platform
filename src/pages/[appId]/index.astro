@@ -1,0 +1,19 @@
+---
+import Base from "../../layouts/Base.astro";
+import DiagnosisApp from "../../components/DiagnosisApp";
+import { getConfig, listApps } from "../../configs/index";
+
+export async function getStaticPaths() {
+  return listApps().map(({ id }) => ({ params: { appId: id } }));
+}
+
+const { appId } = Astro.params;
+const config = getConfig(appId!);
+if (!config) return Astro.redirect("/404");
+---
+
+<Base title={config.seo.title} description={config.seo.description} ogImage={`/og/${appId}.png`}>
+  <h1>{config.name}</h1>
+  <p>{config.description}</p>
+  <DiagnosisApp client:load appId={appId!} />
+</Base>
