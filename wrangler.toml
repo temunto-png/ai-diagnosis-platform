@@ -1,0 +1,9 @@
+name = "satsu-tei"
+compatibility_date = "2026-03-17"
+
+# レート制限用 KV Namespace
+# 初回セットアップ: npx wrangler kv namespace create RATE_LIMIT
+# 取得した id をここに記入してから build & deploy すること
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "cc73aabffd6a4d8ebf0d91254e0178c9"

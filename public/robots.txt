@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://satsu-tei.com/sitemap-index.xml
