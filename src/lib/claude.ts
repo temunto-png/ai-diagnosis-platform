@@ -1,4 +1,4 @@
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-haiku-4-5-20251001";
 
 export async function callClaude(
   apiKey: string,
@@ -43,6 +43,11 @@ export async function callClaude(
     if (response.status === 529) {
       await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
       continue;
+    }
+
+    if (!response.ok) {
+      const err = await response.json() as { error?: { message?: string } };
+      throw new Error(err.error?.message ?? `Claude API error: ${response.status}`);
     }
 
     const data = await response.json() as {

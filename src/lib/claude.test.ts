@@ -13,6 +13,7 @@ describe("callClaude", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
+        ok: true,
         status: 200,
         json: async () => mockResponse,
       })
@@ -24,6 +25,7 @@ describe("callClaude", () => {
 
   it("uses Haiku model", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
       status: 200,
       json: async () => ({ content: [{ type: "text", text: "{}" }] }),
     });
@@ -32,11 +34,12 @@ describe("callClaude", () => {
     await callClaude("test-key", "base64img", "診断して");
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(body.model).toBe("claude-haiku-4-5");
+    expect(body.model).toBe("claude-haiku-4-5-20251001");
   });
 
   it("sends prompt-caching header", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
       status: 200,
       json: async () => ({ content: [{ type: "text", text: "{}" }] }),
     });
@@ -51,8 +54,9 @@ describe("callClaude", () => {
   it("retries on 529 and eventually succeeds", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ status: 529, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: false, status: 529, json: async () => ({}) })
       .mockResolvedValueOnce({
+        ok: true,
         status: 200,
         json: async () => ({ content: [{ type: "text", text: '{"ok": true}' }] }),
       });
