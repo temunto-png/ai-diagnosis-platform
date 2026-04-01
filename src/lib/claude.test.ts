@@ -68,6 +68,23 @@ describe("callClaude", () => {
     vi.unstubAllGlobals();
   });
 
+  it("throws meaningful error when Claude API returns non-JSON error response", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        headers: { get: () => "text/html" },
+        text: async () => "<html>Internal Server Error</html>",
+        json: async () => { throw new SyntaxError("Unexpected end of JSON input"); },
+      })
+    );
+
+    await expect(callClaude("test-key", "base64img", "診断して")).rejects.toThrow(
+      "Claude API error: 500"
+    );
+  });
+
   it("retries on 529 and eventually succeeds", async () => {
     const fetchMock = vi
       .fn()

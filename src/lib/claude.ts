@@ -46,8 +46,14 @@ export async function callClaude(
     }
 
     if (!response.ok) {
-      const err = await response.json() as { error?: { message?: string } };
-      throw new Error(err.error?.message ?? `Claude API error: ${response.status}`);
+      let message = `Claude API error: ${response.status}`;
+      try {
+        const err = await response.json() as { error?: { message?: string } };
+        message = err.error?.message ?? message;
+      } catch {
+        // non-JSON error response（HTMLエラーページ等）は無視してデフォルトメッセージを使用
+      }
+      throw new Error(message);
     }
 
     const data = await response.json() as {
