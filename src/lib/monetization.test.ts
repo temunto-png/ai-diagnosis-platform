@@ -52,4 +52,23 @@ describe("applyMonetization", () => {
     const amazonUrl = m.amazon_url as string;
     expect(decodeURIComponent(amazonUrl)).toContain("補修マーカー");
   });
+
+  it("products[0].amazon_keyword のネストパスが解決される", () => {
+    const result = applyMonetization(
+      {
+        damage_type: "壁紙破れ",
+        damage_level: "軽微",
+        products: [
+          { category: "補修テープ", amazon_keyword: "壁紙補修テープ", reason: "手軽", priority: 1 },
+        ],
+      },
+      [{ condition: "default", type: "affiliate", keyword: "{{products[0].amazon_keyword}}" }],
+      {},
+      { amazonId: "test-22", rakutenId: "test-rakuten" }
+    );
+    expect((result.monetization as { amazon_url: string }).amazon_url).toContain(
+      encodeURIComponent("壁紙補修テープ")
+    );
+    expect((result.monetization as { amazon_url: string }).amazon_url).not.toContain("%7B");
+  });
 });

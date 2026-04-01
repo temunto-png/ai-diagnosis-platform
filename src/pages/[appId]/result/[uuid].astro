@@ -1,10 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
-import { getConfig, listApps } from "../../../configs/index";
-
-export async function getStaticPaths() {
-  return [];
-}
+import { getConfig } from "../../../configs/index";
 
 const { appId, uuid } = Astro.params;
 const config = getConfig(appId!);

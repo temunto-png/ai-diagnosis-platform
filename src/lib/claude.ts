@@ -54,7 +54,12 @@ export async function callClaude(
       content: Array<{ type: string; text: string }>;
     };
     const text = data.content.find((b) => b.type === "text")?.text ?? "{}";
-    return JSON.parse(text.replace(/```json\n?|```\n?/g, "").trim());
+    const cleaned = text.replace(/```json\n?|```\n?/g, "").trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      throw new Error(`Claude returned non-JSON response: ${cleaned.slice(0, 100)}`);
+    }
   }
   throw new Error("Claude API unavailable after retries");
 }
