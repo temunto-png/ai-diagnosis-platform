@@ -3,28 +3,92 @@ import Base from "../layouts/Base.astro";
 import { listApps } from "../configs/index";
 
 const apps = listApps();
+
+const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }> = {
+  "diy-repair":     { icon: "🔨", iconBg: "icon-bg-orange", tagline: "壁・床・木材の傷や汚れ" },
+  "kabi-diagnosis": { icon: "🔬", iconBg: "icon-bg-green",  tagline: "壁・浴室・押入れのカビ" },
+};
 ---
 
 <Base
-  title="AI画像診断ツール一覧"
-  description="撮影するだけでAIが診断・おすすめ商品を提案する無料ツール集"
+  title="撮偵 — 写真1枚でAIが解決策を診断"
+  description="写真を撮るだけでAIが診断・おすすめ商品を提案。壁キズ・カビ・タイヤなど無料で使えるAI診断ツール集"
 >
-  <h1>AI画像診断ツール</h1>
-  <p>画像を撮影するだけでAIが診断し、おすすめ商品を提案します。</p>
 
-  <ul>
-    {apps.map((app) => (
-      <li>
-        <a href={`/${app.id}/`}>
-          <strong>{app.name}</strong>
-          <span>{app.description}</span>
-        </a>
-      </li>
-    ))}
-  </ul>
-
-  <section>
-    <h2>使い方ガイド</h2>
-    <p>DIY補修・カビ対策などの詳しい方法は<a href="/guide/">ガイド記事</a>をご覧ください。</p>
+  <!-- ヒーロー -->
+  <section class="hero">
+    <div class="hero-eyebrow">🤖 AI画像診断ツール</div>
+    <h1 class="hero-title">
+      写真<em>1枚</em>で<br />AIが解決策を診断
+    </h1>
+    <p class="hero-desc">
+      壁・床のキズ、カビ、タイヤ…<br />
+      気になる場所を撮るだけ。登録不要・無料で使えます。
+    </p>
+    <div class="hero-badges">
+      <span class="pill-badge pill-orange">✅ 登録不要・完全無料</span>
+      <span class="pill-badge pill-orange">⚡ 数秒で診断完了</span>
+    </div>
   </section>
+
+  <!-- 診断ツール一覧 -->
+  <section class="apps-section">
+    <div class="container">
+      <p class="section-eyebrow">診断ツール一覧</p>
+      <div class="apps-grid">
+        {apps.map((app) => {
+          const meta = appMeta[app.id] ?? { icon: "🔍", iconBg: "icon-bg-blue", tagline: "" };
+          return (
+            <a href={`/${app.id}/`} class="app-card">
+              <div class={`app-card-icon-wrap ${meta.iconBg}`}>{meta.icon}</div>
+              <div>
+                <div class="app-card-name">{app.name}</div>
+                <div class="app-card-desc">{app.description}</div>
+              </div>
+              <div class="app-card-footer">
+                <span class="app-card-cta-text">無料で診断する</span>
+                <span class="app-card-arrow">→</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- 使い方 -->
+  <section class="steps-section">
+    <div class="container">
+      <p class="section-eyebrow">使い方 — 3ステップ</p>
+      <div class="steps-grid">
+        {[
+          { step: "1", icon: "📷", title: "写真を撮る",   desc: "スマホで気になる場所を撮影するだけ" },
+          { step: "2", icon: "🤖", title: "AIが解析",     desc: "数秒でAIが画像を判定・診断します" },
+          { step: "3", icon: "🛒", title: "商品を確認",   desc: "状況に合ったおすすめ商品を提案" },
+        ].map(({ step, icon, title, desc }) => (
+          <div class="step-card">
+            <div class="step-num">{step}</div>
+            <div class="step-icon">{icon}</div>
+            <div class="step-title">{title}</div>
+            <div class="step-desc">{desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ガイドへの誘導 -->
+  <section class="guide-teaser">
+    <div class="container">
+      <p class="section-eyebrow" style="color: var(--green);">使い方ガイド</p>
+      <h2 class="guide-teaser-title">DIY補修・カビ対策の詳しい方法</h2>
+      <p class="guide-teaser-desc">
+        補修材の選び方・カビの除去手順など、プロが解説するガイド記事を掲載しています。
+      </p>
+      <a href="/guide/" class="btn btn-outline" style="color:var(--green);border-color:var(--green);">
+        📚 ガイドを読む →
+      </a>
+    </div>
+  </section>
+
 </Base>

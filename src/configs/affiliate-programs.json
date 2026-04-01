@@ -4,17 +4,28 @@
       "id": "a8-base",
       "name": "A8.net",
       "asp": "a8",
-      "status": "account_registered",
-      "site_add_required": true,
-      "media_url": "https://example.com/guide/"
+      "status": "site_registered",
+      "media_id": "a26032995791",
+      "site_name": "撮偵（Satsu-tei）",
+      "media_url": "https://satsu-tei.com/guide/",
+      "note": "サイト登録完了 2026-03-31。個別プログラムへの提携申請は別途必要"
     },
     {
       "id": "moshimo-base",
       "name": "もしもアフィリエイト",
       "asp": "moshimo",
-      "status": "account_registered",
-      "site_add_required": true,
-      "media_url": "https://example.com/guide/"
+      "status": "pending_site_registration",
+      "publisher_id": "1184501",
+      "media_url": "https://satsu-tei.com/guide/",
+      "note": "サイト表示確認後に登録する（DNS反映待ち）"
+    },
+    {
+      "id": "rakuten-affiliate",
+      "name": "楽天アフィリエイト",
+      "asp": "rakuten",
+      "status": "pending_site_registration",
+      "media_url": "https://satsu-tei.com/guide/",
+      "note": "サイト表示確認後に登録する（DNS反映待ち）"
     },
     {
       "id": "amazon-associate",

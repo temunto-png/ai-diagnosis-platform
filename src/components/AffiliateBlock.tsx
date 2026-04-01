@@ -14,36 +14,66 @@ export default function AffiliateBlock({ monetization }: Props) {
 
   if (monetization.type === "affiliate") {
     return (
-      <div>
-        <h3>おすすめ商品を探す</h3>
-        <p>
-          <small>
-            ※ 以下はアフィリエイトリンクです。商品を購入いただいた場合、当サイトに報酬が発生します。
-          </small>
-        </p>
-        <div>
+      <div className="affiliate-block">
+        <div className="affiliate-heading">🛒 おすすめ商品を探す</div>
+        <div className="affiliate-sub">
+          診断結果に合った商品をAmazon・楽天市場で検索できます
+        </div>
+        <div className="affiliate-btns">
           {monetization.amazon_url && (
-            <a href={monetization.amazon_url} target="_blank" rel="noopener noreferrer">
-              Amazonで探す
+            <a
+              href={monetization.amazon_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="affiliate-btn affiliate-btn-amazon"
+            >
+              <span className="affiliate-btn-icon">📦</span>
+              <span>
+                <span className="affiliate-btn-label">最短翌日お届け</span>
+                Amazonで探す
+              </span>
             </a>
           )}
           {monetization.rakuten_url && (
-            <a href={monetization.rakuten_url} target="_blank" rel="noopener noreferrer">
-              楽天市場で探す
+            <a
+              href={monetization.rakuten_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="affiliate-btn affiliate-btn-rakuten"
+            >
+              <span className="affiliate-btn-icon">🛍️</span>
+              <span>
+                <span className="affiliate-btn-label">ポイント還元あり</span>
+                楽天市場で探す
+              </span>
             </a>
           )}
         </div>
+        <p className="affiliate-disclosure">
+          ※ アフィリエイトリンクです。購入時に当サイトへ報酬が発生する場合があります。
+        </p>
       </div>
     );
   }
 
   if (monetization.type === "cpa" && monetization.cpa_url) {
     return (
-      <div>
-        <h3>無料見積もり・査定はこちら</h3>
-        <a href={monetization.cpa_url} target="_blank" rel="noopener noreferrer">
-          無料で相談する
-        </a>
+      <div className="affiliate-block">
+        <div className="affiliate-heading">🏠 プロに相談する</div>
+        <div className="affiliate-sub">
+          自分での修繕が難しい場合は、専門業者への無料相談がおすすめです
+        </div>
+        <div className="affiliate-btns">
+          <a
+            href={monetization.cpa_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="affiliate-btn affiliate-btn-cpa"
+          >
+            <span className="affiliate-btn-icon">📋</span>
+            無料で見積もり・相談する
+          </a>
+        </div>
       </div>
     );
   }

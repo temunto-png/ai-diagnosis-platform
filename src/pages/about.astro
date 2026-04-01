@@ -1,13 +1,55 @@
 ---
 import Base from "../layouts/Base.astro";
 ---
+
 <Base title="運営者情報" description="当サイトの運営者情報">
-  <h1>運営者情報</h1>
-  <table>
-    <tr><th>運営者</th><td>個人運営</td></tr>
-    <tr><th>所在地</th><td>東京都</td></tr>
-    <tr><th>設立</th><td>2026年</td></tr>
-    <tr><th>事業内容</th><td>AI画像診断Webサービスの運営・アフィリエイト</td></tr>
-    <tr><th>お問い合わせ</th><td><a href="/contact/">お問い合わせページ</a></td></tr>
-  </table>
+  <article class="article-page">
+    <header class="article-header">
+      <h1 class="article-title">運営者情報</h1>
+    </header>
+
+    <div class="article-body">
+      <table class="info-table">
+        <tr><th>運営者</th><td>個人運営</td></tr>
+        <tr><th>所在地</th><td>東京都</td></tr>
+        <tr><th>設立</th><td>2026年</td></tr>
+        <tr><th>事業内容</th><td>AI画像診断Webサービスの運営・アフィリエイト</td></tr>
+        <tr><th>お問い合わせ</th><td><a href="/contact/">お問い合わせページ</a></td></tr>
+      </table>
+    </div>
+
+    <nav class="article-back">
+      <a href="/">← トップページに戻る</a>
+    </nav>
+  </article>
 </Base>
+
+<style>
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.info-table th,
+.info-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.65;
+}
+.info-table th {
+  width: 9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.info-table td {
+  color: var(--text);
+}
+.info-table a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+</style>

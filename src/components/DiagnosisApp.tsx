@@ -18,9 +18,17 @@ interface Props {
 export default function DiagnosisApp({ appId, context = {} }: Props) {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
 
+  const handleReset = () => setResult(null);
+
   return (
     <div>
-      <ImageUploader appId={appId} context={context} onResult={setResult} />
+      <ImageUploader
+        appId={appId}
+        context={context}
+        onResult={setResult}
+        onReset={handleReset}
+        hasResult={result !== null}
+      />
       {result && (
         <>
           <DiagnosisResult data={result} appId={appId} />

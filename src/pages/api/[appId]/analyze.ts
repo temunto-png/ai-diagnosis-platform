@@ -5,7 +5,7 @@ import { applyMonetization } from "../../../lib/monetization";
 import { isRateLimited } from "../../../lib/rate-limit";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://satsu-tei.com",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   const env = (locals as App.Locals).runtime.env;
 
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  if (await isRateLimited(ip, config.daily_limit)) {
+  if (await isRateLimited(ip, config.daily_limit, env.RATE_LIMIT_KV)) {
     return Response.json(
       { error: "Rate limit exceeded. Please try again tomorrow." },
       { status: 429, headers: corsHeaders }

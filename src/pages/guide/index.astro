@@ -2,27 +2,33 @@
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
 
+export const prerender = true;
+
 const articles = (await getCollection("guide")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 ---
 
 <Base
-  title="DIY補修・日用品ガイド | AI診断ツール使い方"
+  title="DIY補修・日用品ガイド | 撮偵"
   description="壁紙補修・カビ対策・タイヤチェックなどDIY・日用品の使い方ガイド記事一覧"
 >
-  <h1>使い方ガイド</h1>
-  <ul>
-    {articles.map((article) => (
-      <li>
-        <a href={`/guide/${article.id}/`}>
-          <strong>{article.data.title}</strong>
-          <span>{article.data.description}</span>
-          <time datetime={article.data.pubDate.toISOString()}>
+  <div class="page-header container">
+    <h1 class="page-title">📚 使い方ガイド</h1>
+    <p class="page-desc">補修材の選び方・カビ対策など、DIYに役立つ記事を掲載しています。</p>
+  </div>
+
+  <div class="container" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
+    <div class="guide-grid">
+      {articles.map((article) => (
+        <a href={`/guide/${article.id}/`} class="guide-card">
+          <div class="guide-card-title">{article.data.title}</div>
+          <div class="guide-card-desc">{article.data.description}</div>
+          <time class="guide-card-date" datetime={article.data.pubDate.toISOString()}>
             {article.data.pubDate.toLocaleDateString("ja-JP")}
           </time>
         </a>
-      </li>
-    ))}
-  </ul>
+      ))}
+    </div>
+  </div>
 </Base>
