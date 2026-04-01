@@ -38,8 +38,12 @@ async function getOrFetch(
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
-    const { data, ts } = JSON.parse(cached) as { data: Record<string, unknown>; ts: number };
-    if (Date.now() - ts < 5 * 60 * 1000) return data;
+    try {
+      const { data, ts } = JSON.parse(cached) as { data: Record<string, unknown>; ts: number };
+      if (Date.now() - ts < 5 * 60 * 1000) return data;
+    } catch {
+      sessionStorage.removeItem(cacheKey);
+    }
   }
 
   const image = await resizeImage(file);
