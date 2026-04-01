@@ -11,7 +11,7 @@ export default defineConfig({
   integrations: [react(), mdx()],
   vite: {
     build: {
-      emptyOutDir: false,
+      emptyOutDir: true,
     },
   },
 });
