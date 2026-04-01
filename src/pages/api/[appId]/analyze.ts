@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { getConfig } from "../../../configs/index";
 import { callClaude } from "../../../lib/claude";
 import { applyMonetization } from "../../../lib/monetization";
@@ -13,21 +14,13 @@ const corsHeaders = {
 export const OPTIONS: APIRoute = () =>
   new Response(null, { headers: corsHeaders });
 
-export const POST: APIRoute = async ({ params, request, locals }) => {
+export const POST: APIRoute = async ({ params, request }) => {
   try {
     const appId = params.appId!;
 
     const config = getConfig(appId);
     if (!config) {
       return Response.json({ error: "App not found" }, { status: 404, headers: corsHeaders });
-    }
-
-    const env = (locals as App.Locals).runtime?.env;
-    if (!env) {
-      return Response.json(
-        { error: "Server configuration error" },
-        { status: 500, headers: corsHeaders }
-      );
     }
 
     const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
