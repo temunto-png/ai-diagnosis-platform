@@ -48,8 +48,12 @@ async function getOrFetch(
   });
 
   if (!res.ok) {
-    const err = (await res.json()) as { error: string };
-    throw new Error(err.error ?? "診断に失敗しました");
+    const contentType = res.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const err = (await res.json()) as { error: string };
+      throw new Error(err.error ?? "診断に失敗しました");
+    }
+    throw new Error(`診断サービスに接続できませんでした (${res.status})`);
   }
 
   const data = (await res.json()) as Record<string, unknown>;
