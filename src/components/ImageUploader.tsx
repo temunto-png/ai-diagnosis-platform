@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 type DiagnosisState =
   | { status: "idle" }
@@ -21,7 +21,9 @@ async function resizeImage(file: File): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(img.width * ratio);
   canvas.height = Math.round(img.height * ratio);
-  canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D context unavailable");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
 }
 
@@ -61,6 +63,13 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
   const [state, setState] = useState<DiagnosisState>({ status: "idle" });
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // preview が変わるたびに古い ObjectURL を破棄
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
