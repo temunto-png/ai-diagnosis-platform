@@ -35,7 +35,7 @@ const adsenseId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
     <meta name="author" content="撮偵 — AIホームケア診断" />
 
     <!-- Structured Data -->
-    <SchemaOrg type="website" />
+    {!Astro.slots.has("head") && <SchemaOrg type="website" />}
     <slot name="head" />
 
     <!-- Fonts -->
