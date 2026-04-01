@@ -51,6 +51,23 @@ describe("callClaude", () => {
     expect(headers["anthropic-beta"]).toContain("prompt-caching");
   });
 
+  it("Claude が非JSONテキストを返した場合に Error を throw する", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        content: [{ type: "text", text: "申し訳ありませんが、この画像は診断できません。" }],
+      }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    await expect(callClaude("test-key", "base64data", "診断してください")).rejects.toThrow(
+      "Claude returned non-JSON response"
+    );
+
+    vi.unstubAllGlobals();
+  });
+
   it("retries on 529 and eventually succeeds", async () => {
     const fetchMock = vi
       .fn()
