@@ -1,0 +1,62 @@
+---
+type Props =
+  | { type: "website" }
+  | {
+      type: "article";
+      title: string;
+      description: string;
+      pubDate: Date;
+      url: string;
+    };
+
+const props = Astro.props;
+
+const siteUrl = "https://satsu-tei.com";
+const siteName = "撮偵";
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: siteName,
+  url: siteUrl,
+};
+
+const articleSchema =
+  props.type === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: props.title,
+        description: props.description,
+        datePublished: props.pubDate.toISOString(),
+        url: props.url,
+        author: {
+          "@type": "Organization",
+          name: siteName,
+          url: siteUrl,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: siteName,
+          url: siteUrl,
+        },
+      }
+    : null;
+
+const breadcrumbSchema =
+  props.type === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "トップ", item: siteUrl + "/" },
+          { "@type": "ListItem", position: 2, name: "ガイド", item: siteUrl + "/guide/" },
+          { "@type": "ListItem", position: 3, name: props.title, item: props.url },
+        ],
+      }
+    : null;
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+{articleSchema && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />}
+{breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />}
