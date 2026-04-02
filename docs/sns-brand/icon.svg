@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <clipPath id="circle-clip">
+      <circle cx="200" cy="200" r="200"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background: coral orange circle -->
+  <circle cx="200" cy="200" r="200" fill="#E5604A"/>
+
+  <!-- All content clipped to circle boundary -->
+  <g clip-path="url(#circle-clip)">
+
+    <!-- Camera body (white) -->
+    <rect x="72" y="125" width="234" height="152" rx="22" fill="white"/>
+
+    <!-- Camera viewfinder bump (top center) -->
+    <rect x="150" y="103" width="74" height="30" rx="10" fill="white"/>
+
+    <!-- Camera lens: outer white circle -->
+    <circle cx="178" cy="200" r="53" fill="white"/>
+    <!-- Camera lens: inner orange (creates ring + depth) -->
+    <circle cx="178" cy="200" r="37" fill="#E5604A"/>
+    <!-- Lens highlight -->
+    <circle cx="165" cy="188" r="10" fill="white" opacity="0.5"/>
+
+    <!-- Flash / shutter button (top right of body) -->
+    <rect x="258" y="143" width="28" height="18" rx="6" fill="#E5604A"/>
+
+    <!-- Magnifying glass (overlaps camera body, bottom-right) -->
+    <!-- White frame circle -->
+    <circle cx="278" cy="278" r="50" fill="white"/>
+    <!-- Orange lens inside (echoes camera lens) -->
+    <circle cx="278" cy="278" r="34" fill="#E5604A"/>
+    <!-- Glass highlight -->
+    <circle cx="267" cy="267" r="9" fill="white" opacity="0.45"/>
+    <!-- Handle (45° toward lower-right) -->
+    <line x1="310" y1="310" x2="338" y2="338" stroke="white" stroke-width="18" stroke-linecap="round"/>
+
+  </g>
+</svg>

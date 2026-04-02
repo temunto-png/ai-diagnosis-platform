@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <!-- Subtle dot grid pattern -->
+    <pattern id="dot-grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1.5" fill="#E5604A" opacity="0.12"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="#F8F8F8"/>
+  <!-- Subtle grid overlay (full width) -->
+  <rect width="1500" height="500" fill="url(#dot-grid)"/>
+
+  <!-- ===== LEFT SECTION: Camera + Magnifying Glass symbol ===== -->
+
+  <!-- Camera body (coral orange) -->
+  <rect x="100" y="140" width="300" height="196" rx="28" fill="#E5604A"/>
+
+  <!-- Camera viewfinder bump -->
+  <rect x="192" y="113" width="96" height="38" rx="13" fill="#E5604A"/>
+
+  <!-- Camera lens: outer white circle -->
+  <circle cx="228" cy="236" r="68" fill="white"/>
+  <!-- Camera lens: inner orange -->
+  <circle cx="228" cy="236" r="48" fill="#E5604A"/>
+  <!-- Lens highlight -->
+  <circle cx="212" cy="220" r="13" fill="white" opacity="0.6"/>
+
+  <!-- Flash / shutter button -->
+  <rect x="330" y="162" width="36" height="23" rx="8" fill="white" opacity="0.85"/>
+
+  <!-- Magnifying glass (overlaps camera body, bottom-right) -->
+  <!-- White frame circle -->
+  <circle cx="358" cy="356" r="65" fill="white"/>
+  <!-- Orange lens inside -->
+  <circle cx="358" cy="356" r="44" fill="#E5604A"/>
+  <!-- Glass highlight -->
+  <circle cx="342" cy="340" r="12" fill="white" opacity="0.45"/>
+  <!-- Handle -->
+  <line x1="405" y1="405" x2="442" y2="442" stroke="white" stroke-width="22" stroke-linecap="round"/>
+
+  <!-- Soft vertical separator -->
+  <line x1="560" y1="60" x2="560" y2="440" stroke="#E5604A" stroke-width="1" opacity="0.18"/>
+
+  <!-- ===== RIGHT SECTION: Text ===== -->
+
+  <!-- Service name: 撮偵 -->
+  <text
+    x="620" y="232"
+    font-family="'M PLUS Rounded 1c', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif"
+    font-size="120"
+    font-weight="800"
+    fill="#E5604A"
+  >撮偵</text>
+
+  <!-- Main tagline -->
+  <text
+    x="624" y="292"
+    font-family="'M PLUS Rounded 1c', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif"
+    font-size="36"
+    font-weight="700"
+    fill="#333333"
+  >写真1枚でAIが解決策を診断</text>
+
+  <!-- Sub-tagline -->
+  <text
+    x="626" y="344"
+    font-family="'M PLUS Rounded 1c', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif"
+    font-size="26"
+    font-weight="400"
+    fill="#888888"
+  >壁キズ・カビ・タイヤ｜無料AI診断</text>
+
+  <!-- URL -->
+  <text
+    x="626" y="432"
+    font-family="'M PLUS Rounded 1c', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif"
+    font-size="22"
+    font-weight="400"
+    fill="#BBBBBB"
+  >satsu-tei.com</text>
+
+</svg>

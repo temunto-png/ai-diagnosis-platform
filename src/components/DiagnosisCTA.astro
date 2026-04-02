@@ -1,0 +1,186 @@
+---
+interface Props {
+  diagnosisType: "diy-repair" | "kabi-diagnosis";
+  variant?: "top" | "bottom";
+}
+
+const { diagnosisType, variant = "bottom" } = Astro.props;
+
+const config = {
+  "diy-repair": {
+    href: "/diy-repair/",
+    icon: "🔧",
+    label: "AI補修診断ツール",
+    description: "写真を撮るだけで、AIが補修方法と必要な道具を提案します。",
+    cta: "無料で補修診断する →",
+    gaEvent: "cta_click_diy_repair",
+  },
+  "kabi-diagnosis": {
+    href: "/kabi-diagnosis/",
+    icon: "🔬",
+    label: "AIカビ診断ツール",
+    description: "写真を撮るだけで、AIがカビの種類と適切な対処法を診断します。",
+    cta: "無料でカビ診断する →",
+    gaEvent: "cta_click_kabi_diagnosis",
+  },
+} as const;
+
+const c = config[diagnosisType];
+---
+
+<div class={`diagnosis-cta diagnosis-cta--${variant}`} data-ga-event={c.gaEvent}>
+  <div class="diagnosis-cta__inner">
+    <span class="diagnosis-cta__icon">{c.icon}</span>
+    <div class="diagnosis-cta__body">
+      <p class="diagnosis-cta__label">{c.label}</p>
+      <p class="diagnosis-cta__desc">{c.description}</p>
+    </div>
+    <a href={c.href} class="diagnosis-cta__btn">
+      {c.cta}
+    </a>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".diagnosis-cta").forEach((el) => {
+    const event = el.dataset.gaEvent;
+    if (!event) return;
+    el.querySelector("a")?.addEventListener("click", () => {
+      if (typeof gtag !== "undefined") {
+        gtag("event", event, { event_category: "cta" });
+      }
+    });
+  });
+</script>
+
+<style>
+.diagnosis-cta {
+  margin: 1.75rem 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* ── Top variant: subtle ── */
+.diagnosis-cta--top {
+  background: var(--primary-light);
+  border: 1.5px solid var(--primary-mid);
+}
+
+.diagnosis-cta--top .diagnosis-cta__inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.diagnosis-cta--top .diagnosis-cta__icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.diagnosis-cta--top .diagnosis-cta__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.diagnosis-cta--top .diagnosis-cta__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.125rem;
+}
+
+.diagnosis-cta--top .diagnosis-cta__desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.diagnosis-cta--top .diagnosis-cta__btn {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 0.5rem 1.125rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.diagnosis-cta--top .diagnosis-cta__btn:hover {
+  background: var(--primary-hover);
+}
+
+/* ── Bottom variant: prominent ── */
+.diagnosis-cta--bottom {
+  background: linear-gradient(135deg, var(--primary) 0%, #ff7c4d 100%);
+  box-shadow: var(--shadow-primary);
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.375rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__icon {
+  font-size: 2.25rem;
+  flex-shrink: 0;
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__label {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 0.25rem;
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__desc {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.5;
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__btn {
+  display: inline-block;
+  background: #fff;
+  color: var(--primary);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  padding: 0.625rem 1.375rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.diagnosis-cta--bottom .diagnosis-cta__btn:hover {
+  opacity: 0.92;
+}
+
+@media (max-width: 540px) {
+  .diagnosis-cta--top .diagnosis-cta__inner,
+  .diagnosis-cta--bottom .diagnosis-cta__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .diagnosis-cta--bottom .diagnosis-cta__btn,
+  .diagnosis-cta--top .diagnosis-cta__btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>
