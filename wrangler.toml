@@ -7,3 +7,12 @@ compatibility_date = "2026-03-17"
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
 id = "cc73aabffd6a4d8ebf0d91254e0178c9"
+
+# 診断キャッシュ用 KV Namespace（任意・有効化すると同一画像の重複API呼び出しを削減）
+# セットアップ手順:
+#   1. npx wrangler kv namespace create DIAGNOSIS_CACHE
+#   2. 取得した id を下記に記入してコメントアウトを外す
+#   3. npm run build && npx wrangler deploy --config dist/server/wrangler.json
+# [[kv_namespaces]]
+# binding = "DIAGNOSIS_CACHE_KV"
+# id = "YOUR_KV_NAMESPACE_ID_HERE"

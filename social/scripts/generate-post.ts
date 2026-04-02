@@ -34,6 +34,16 @@ function buildUserPrompt(
 URLプレースホルダー: {{url}}`;
 }
 
+const DEFAULT_SOCIAL_MAX_TOKENS = 300;
+const MIN_SOCIAL_MAX_TOKENS = 100;
+const MAX_SOCIAL_MAX_TOKENS = 1024;
+
+function resolveSocialMaxTokens(): number {
+  const parsed = parseInt(process.env.CLAUDE_SOCIAL_MAX_TOKENS ?? "", 10);
+  if (isNaN(parsed)) return DEFAULT_SOCIAL_MAX_TOKENS;
+  return Math.min(MAX_SOCIAL_MAX_TOKENS, Math.max(MIN_SOCIAL_MAX_TOKENS, parsed));
+}
+
 export async function generatePost(
   entry: CalendarEntry,
   article: ArticleMetadata | null
@@ -41,7 +51,7 @@ export async function generatePost(
   const client = new Anthropic();
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
+    max_tokens: resolveSocialMaxTokens(),
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: buildUserPrompt(entry, article) }],
   });
