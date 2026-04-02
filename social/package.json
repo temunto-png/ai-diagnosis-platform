@@ -1,0 +1,21 @@
+{
+  "name": "satsu-tei-social",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "post": "tsx scripts/run.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "gray-matter": "^4.0.3",
+    "twitter-api-v2": "^1.19.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
