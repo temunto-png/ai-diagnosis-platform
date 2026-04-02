@@ -1,0 +1,108 @@
+# social/content-calendar.yml
+# 投稿スケジュール定義
+# platforms: [x] or [x, instagram]
+# type: article-promo | tips | rental-aru-aru | seasonal
+# slug: src/content/guide/ 配下のファイル名（.mdx 除く）。null の場合は Claude がフリー生成
+
+posts:
+  # --- 2026年4月 ---
+  - date: "2026-04-07"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: drain-clog-removal
+
+  - date: "2026-04-09"
+    platforms: [x]
+    type: tips
+    slug: wallpaper-repair
+
+  - date: "2026-04-11"
+    platforms: [x]
+    type: rental-aru-aru
+    slug: null
+
+  - date: "2026-04-14"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: black-mold-removal
+
+  - date: "2026-04-16"
+    platforms: [x]
+    type: tips
+    slug: rental-wall-repair
+
+  - date: "2026-04-18"
+    platforms: [x]
+    type: rental-aru-aru
+    slug: null
+
+  - date: "2026-04-21"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: headlight-polish
+
+  - date: "2026-04-23"
+    platforms: [x]
+    type: tips
+    slug: mold-prevention-spray
+
+  - date: "2026-04-25"
+    platforms: [x]
+    type: rental-aru-aru
+    slug: null
+
+  - date: "2026-04-28"
+    platforms: [x, instagram]
+    type: seasonal
+    slug: null
+
+  # --- 2026年5月 ---
+  - date: "2026-05-02"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: floor-repair-paste
+
+  - date: "2026-05-05"
+    platforms: [x]
+    type: tips
+    slug: wallpaper-repair-seal
+
+  - date: "2026-05-07"
+    platforms: [x]
+    type: rental-aru-aru
+    slug: null
+
+  - date: "2026-05-09"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: flooring-scratch
+
+  - date: "2026-05-12"
+    platforms: [x]
+    type: tips
+    slug: car-scratch-repair
+
+  - date: "2026-05-14"
+    platforms: [x]
+    type: seasonal
+    slug: null
+
+  - date: "2026-05-16"
+    platforms: [x, instagram]
+    type: article-promo
+    slug: tire-check-timing
+
+  - date: "2026-05-19"
+    platforms: [x]
+    type: tips
+    slug: winter-tire-timing
+
+  - date: "2026-05-21"
+    platforms: [x]
+    type: rental-aru-aru
+    slug: null
+
+  - date: "2026-05-23"
+    platforms: [x, instagram]
+    type: seasonal
+    slug: null
