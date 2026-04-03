@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { CalendarEntry, ContentCalendar } from "../scripts/types.js";
 
+vi.mock("fs", () => ({
+  existsSync: vi.fn().mockReturnValue(false),
+}));
+
 vi.mock("../scripts/calendar.js", () => ({
   loadCalendar: vi.fn(),
   findTodayEntry: vi.fn(),
@@ -66,12 +70,13 @@ describe("main", () => {
     await main("2026-04-09");
 
     expect(mockPostX).toHaveBeenCalledWith(
-      "DIYで壁紙補修 https://satsu-tei.com/guide/wallpaper-repair/ #DIY"
+      "DIYで壁紙補修 https://satsu-tei.com/guide/wallpaper-repair/?utm_source=x&utm_medium=social&utm_campaign=tips&utm_content=wallpaper-repair #DIY",
+      undefined
     );
     expect(mockPostInstagram).not.toHaveBeenCalled();
   });
 
-  it("posts to both X and Instagram when platforms includes instagram", async () => {
+  it("posts to both X and Instagram with platform-specific UTM URLs", async () => {
     const entryBoth: CalendarEntry = {
       date: "2026-04-07",
       platforms: ["x", "instagram"],
@@ -90,15 +95,16 @@ describe("main", () => {
     await main("2026-04-07");
 
     expect(mockPostX).toHaveBeenCalledWith(
-      "記事紹介 https://satsu-tei.com/guide/drain-clog-removal/ #DIY"
+      "記事紹介 https://satsu-tei.com/guide/drain-clog-removal/?utm_source=x&utm_medium=social&utm_campaign=article-promo&utm_content=drain-clog-removal #DIY",
+      undefined
     );
     expect(mockPostInstagram).toHaveBeenCalledWith(
       "記事紹介キャプション #賃貸DIY",
-      "https://satsu-tei.com/guide/drain-clog-removal/"
+      "https://satsu-tei.com/guide/drain-clog-removal/?utm_source=instagram&utm_medium=social&utm_campaign=article-promo&utm_content=drain-clog-removal"
     );
   });
 
-  it("skips article read when slug is null", async () => {
+  it("skips article read when slug is null and uses freeform UTM content", async () => {
     const entryNoSlug: CalendarEntry = {
       date: "2026-04-11",
       platforms: ["x"],
@@ -106,7 +112,7 @@ describe("main", () => {
       slug: null,
     };
     mockFindTodayEntry.mockReturnValue(entryNoSlug);
-    mockGeneratePost.mockResolvedValue({ x: "賃貸あるある #賃貸" });
+    mockGeneratePost.mockResolvedValue({ x: "賃貸あるある {{url}} #賃貸" });
     mockPostX.mockResolvedValue("tweet_003");
 
     const { main } = await import("../scripts/run.js");
@@ -114,5 +120,9 @@ describe("main", () => {
 
     expect(mockReadArticle).not.toHaveBeenCalled();
     expect(mockGeneratePost).toHaveBeenCalledWith(entryNoSlug, null);
+    expect(mockPostX).toHaveBeenCalledWith(
+      "賃貸あるある https://satsu-tei.com?utm_source=x&utm_medium=social&utm_campaign=rental-aru-aru&utm_content=freeform #賃貸",
+      undefined
+    );
   });
 });

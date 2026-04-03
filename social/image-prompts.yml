@@ -1,0 +1,304 @@
+# social/image-prompts.yml
+# ComfyUI 用画像生成プロンプト定義
+#
+# 【使い方】
+# 1. comfyui_defaults の値を ComfyUI ノードに設定
+# 2. 各エントリの positive / negative をそのまま CLIPTextEncode にコピペ
+# 3. 生成後は output のパスに保存（投稿時に自動添付される）
+#
+# 【ノードマッピング】
+#   checkpoint    → CheckpointLoaderSimple > ckpt_name
+#   width/height  → EmptyLatentImage > width / height
+#   steps         → KSampler > steps
+#   cfg           → KSampler > cfg
+#   sampler_name  → KSampler > sampler_name
+#   scheduler     → KSampler > scheduler
+#   denoise       → KSampler > denoise
+#   positive      → CLIPTextEncode（上段・ポジティブ）
+#   negative      → CLIPTextEncode（下段・ネガティブ）
+#   seed          → KSampler > seed（-1 = ランダム）
+
+# =============================================================
+# ComfyUI 共通設定
+# =============================================================
+
+comfyui_defaults:
+  checkpoint: "realisticVisionV60B1_v51VAE.safetensors"
+  width: 1280
+  height: 720
+  steps: 28
+  cfg: 7.0
+  sampler_name: dpmpp_2m
+  scheduler: karras
+  denoise: 1.0
+  batch_size: 4       # 一度に4枚生成して最良を選ぶ
+  seed: -1            # -1 = ランダム
+
+# =============================================================
+# 記事スラッグ別
+# =============================================================
+
+article_images:
+
+  drain-clog-removal:
+    title: 排水口のつまりを自分で解消する方法
+    output: social/images/drain-clog-removal.png
+    positive: >
+      bright clean bathroom drain being unclogged, close-up of stainless steel
+      bathtub sink drain, rubber plunger and drain cleaner bottle nearby,
+      soap foam and water visible, soft natural light from window, white tiles
+      background, warm white tones, japanese domestic bathroom,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, dirty, gross, disgusting, text, watermark, anime, cartoon,
+      illustration, drawing, ugly, blurry, low quality, deformed,
+      extra fingers, bad anatomy, worst quality, nsfw
+    note: 排水がきれいになっていく途中のカットで「解決感」を演出
+
+  wallpaper-repair:
+    title: 壁紙の補修方法まとめ
+    output: social/images/wallpaper-repair.png
+    positive: >
+      hands carefully applying white wallpaper patch to small tear on cream
+      interior wall, smoothing spatula scissors adhesive tube on wooden floor,
+      clean japanese apartment interior, bright daylight, warm hopeful atmosphere,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, messy, large damage, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 修理中の手元ショット。完成後より「作業中」の方が共感を生む
+
+  black-mold-removal:
+    title: 黒カビの落とし方と最強洗剤の選び方
+    output: social/images/black-mold-removal.png
+    positive: >
+      before-and-after bathroom tiles, right half spotlessly clean white tiles,
+      left half small black mold spots being treated with spray bottle,
+      rubber gloves and scrubbing brush visible, bright white grout lines,
+      clean clinical atmosphere, japanese bathroom,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      disgusting, extreme mold, heavy mold infestation, dark, text, watermark,
+      anime, cartoon, illustration, ugly, blurry, low quality, deformed,
+      worst quality, nsfw
+    note: カビは小さめ・洗剤で半分消えている構図で「やっつけられる」感を出す
+
+  rental-wall-repair:
+    title: 賃貸の壁穴・傷の補修方法と退去時の注意点
+    output: social/images/rental-wall-repair.png
+    positive: >
+      small nail hole in white apartment wall being filled with white putty,
+      palette knife applying wall repair compound, sandpaper and small brush nearby,
+      bright interior light, minimal japanese apartment aesthetic,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      large damage, large hole, dark, scary, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 穴はネジ穴程度の小ささに。賃貸退去前の安心感を演出
+
+  headlight-polish:
+    title: ヘッドライトの黄ばみを自分で磨く方法
+    output: social/images/headlight-polish.png
+    positive: >
+      close-up car headlight being hand polished, left side noticeably yellowed
+      and hazy, right side crystal clear after polishing, polishing compound
+      bottle and microfiber cloth on car hood, silver white car, sunny parking lot,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, night, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 左右のbefore/after構図が高エンゲージメント
+
+  mold-prevention-spray:
+    title: カビ防止スプレーの選び方と使い方
+    output: social/images/mold-prevention-spray.png
+    positive: >
+      clean white bathroom spray bottle of mold prevention product applied to
+      tile grout, light steam from shower visible, clean bright tiles,
+      bright natural light, blurred generic product label, soft shadows,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      mold, dirty, dark, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 予防製品なので清潔感MAX。スプレーボトルをメインに
+
+  floor-repair-paste:
+    title: フローリング補修ペーストの使い方と失敗しない選び方
+    output: social/images/floor-repair-paste.png
+    positive: >
+      hands applying wood-colored repair paste to scratch on light oak flooring,
+      small spatula tool, repair kit with multiple color cartridges beside it,
+      warm indoor lighting, wooden grain texture prominent, close-up shot,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, severely damaged floor, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: カラーバリエーションのキットを見せると購買意欲UP
+
+  wallpaper-repair-seal:
+    title: 壁紙補修シールの選び方と貼り方
+    output: social/images/wallpaper-repair-seal.png
+    positive: >
+      peeling corner of white wallpaper being re-adhered with transparent
+      adhesive seal strip, fingers pressing gently on wall, roll of repair tape
+      and small scissors on floor, bright japanese room,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      large tear, large damage, dark, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: シールそのものよりも「貼っている手元」をメインに
+
+  flooring-scratch:
+    title: フローリングの傷を自分で直す方法と補修材の選び方
+    output: social/images/flooring-scratch.png
+    positive: >
+      light wood flooring with visible surface scratch center frame,
+      repair crayon sandpaper sheet touch-up marker arranged neatly beside scratch,
+      warm overhead light, shallow depth of field, flat lay style,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      deep gouge, dark room, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 傷は表面的。補修グッズを整然と並べてフラットレイ風
+
+  car-scratch-repair:
+    title: 車の小傷を自分で直すDIY補修グッズとやり方
+    output: social/images/car-scratch-repair.png
+    positive: >
+      close-up minor silver car paint scratch being treated with touch-up pen,
+      car scratch repair kit opened showing compound pen polishing cloth,
+      outdoor natural light, car body metallic paint,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      major dent, rust, dark, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 線傷程度の小さい傷。補修ペンのクローズアップ
+
+  tire-check-timing:
+    title: タイヤ点検の時期とチェックポイント
+    output: social/images/tire-check-timing.png
+    positive: >
+      person crouching beside car tire using tread depth gauge tool,
+      clear view tire sidewall and tread pattern, sunny outdoor parking lot,
+      orange safety cone in soft-focus background, warm afternoon light,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, flat tire, deflated, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: ゲージ使用シーンで「自分でできる」感を出す
+
+  winter-tire-timing:
+    title: 冬タイヤへの交換時期はいつ？地域別
+    output: social/images/winter-tire-timing.png
+    positive: >
+      winter studless snow tire leaning against snowy car bumper in parking lot,
+      light snowfall, frost-covered windshield visible in background,
+      cold blue-white tones, warm gloved hands holding tire,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, blizzard, heavy storm, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 雪と手袋で季節感。暦を意識した構図
+
+# =============================================================
+# 投稿タイプ別汎用（slug なし投稿のフォールバック）
+# =============================================================
+
+type_images:
+
+  tips:
+    output: social/images/type-tips.png
+    positive: >
+      flat lay of essential DIY home repair tools on clean white surface,
+      putty knife sandpaper sheet caulk tube screwdriver measuring tape,
+      coral orange accent tape or label, bright studio lighting,
+      minimal japanese aesthetic, top-down view,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      studio lighting, clean composition, no text, no watermark
+    negative: >
+      messy, dark, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: ツールフラットレイ。スタジオ風のきれいな配置
+
+  rental-aru-aru:
+    output: social/images/type-rental-aru-aru.png
+    positive: >
+      japanese apartment entrance with keys on key hook, housing lease document
+      partially visible on table, moving cardboard boxes in soft background,
+      warm interior light, nostalgic relatable apartment life mood,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, scary, heavily damaged, text, watermark, anime, cartoon,
+      illustration, ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 賃貸あるある系。親近感・共感を誘う生活シーン
+
+# =============================================================
+# 季節別汎用
+# =============================================================
+
+seasonal_images:
+
+  spring:
+    output: social/images/seasonal-spring.png
+    positive: >
+      bright japanese apartment room windows open, cherry blossom petals visible
+      outside, person wiping window sill with cleaning cloth, bucket of cleaning
+      supplies with coral orange bottle, spring morning light, fresh energetic mood,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, winter, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 春の換気・大掃除シーン
+
+  summer:
+    output: social/images/seasonal-summer.png
+    positive: >
+      japanese bathroom in summer, condensation on white tiles, dehumidifier
+      running, person placing mold prevention product on shelf, sunlight through
+      frosted glass window, humid but manageable atmosphere,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, extreme mold, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 梅雨・夏のカビ・湿気対策シーン
+
+  autumn:
+    output: social/images/seasonal-autumn.png
+    positive: >
+      japanese home exterior with autumn leaves, person inspecting caulking
+      around window frame, caulk gun ready in hand, tool bag nearby,
+      golden afternoon light, warm orange-brown tones,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, snow, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 秋の冬支度・外壁点検シーン
+
+  winter:
+    output: social/images/seasonal-winter.png
+    positive: >
+      japanese apartment window with frost patterns, draft excluder tape being
+      applied to window frame, warm indoor light contrasting cold blue outside,
+      cup of hot tea on windowsill, cozy practical mood,
+      masterpiece, best quality, photorealistic, 8k, sharp focus,
+      natural lighting, clean composition, no text, no watermark
+    negative: >
+      dark, blizzard, text, watermark, anime, cartoon, illustration,
+      ugly, blurry, low quality, deformed, worst quality, nsfw
+    note: 冬の防寒・断熱DIYシーン
