@@ -19,6 +19,7 @@ function createDeps(overrides: Partial<UploadDependencies> = {}): UploadDependen
     },
     hashBase64: vi.fn(async () => "a".repeat(64)),
     resizeImage: vi.fn(async () => "base64-image"),
+    requestTimeoutMs: 50,
     ...overrides,
   };
 }
@@ -107,7 +108,25 @@ describe("getOrFetchDiagnosis", () => {
     });
 
     await expect(getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps)).rejects.toThrow(
-      "too many requests"
+      "診断回数の上限に達しました。時間をおいてから再度お試しください。"
+    );
+  });
+
+  it("throws a timeout message when the diagnosis request takes too long", async () => {
+    const deps = createDeps({
+      requestTimeoutMs: 10,
+      fetchImpl: vi.fn(
+        async (_input, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              reject(new DOMException("The operation was aborted.", "AbortError"));
+            });
+          })
+      ),
+    });
+
+    await expect(getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps)).rejects.toThrow(
+      "診断がタイムアウトしました。通信環境を確認して、もう一度お試しください。"
     );
   });
 
@@ -127,7 +146,7 @@ describe("getOrFetchDiagnosis", () => {
 
     expect(fetchImpl).toHaveBeenCalledWith(
       "/api/app/analyze",
-      expect.objectContaining({ signal: controller.signal })
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
   });
 });

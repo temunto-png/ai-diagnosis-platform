@@ -21,7 +21,10 @@ const dependencies: DiagnosisDependencies = {
 
 function serviceUnavailable(requestId: string, corsHeaders: HeadersInit): Response {
   return Response.json(
-    { error: "Diagnosis service temporarily unavailable", requestId },
+    {
+      error: "診断サービスが混み合っています。しばらくしてから再度お試しください。",
+      requestId,
+    },
     { status: 503, headers: corsHeaders }
   );
 }

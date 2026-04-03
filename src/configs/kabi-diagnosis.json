@@ -1,7 +1,7 @@
 {
   "name": "カビ診断",
   "description": "画像からカビらしさや深刻度を整理し、対処の方向性と役立つアイテムを案内します。",
-  "daily_limit": 5,
+  "daily_limit": 20,
   "prompt": "あなたは住まいのカビ状態を整理する診断アドバイザーです。画像を見て、次の JSON オブジェクトのみを返してください。本文や補足説明は不要です。mold_type は見た目から推測できる種類や状態、severity は「軽度」「中度」「重度」のいずれか、location は発生箇所、products は対策アイテム候補、prevention_tip は再発防止の短い助言です。\\n{\\n  \"mold_type\": \"想定されるカビの種類や状態\",\\n  \"severity\": \"軽度|中度|重度\",\\n  \"location\": \"発生箇所の説明\",\\n  \"products\": [\\n    {\\n      \"category\": \"おすすめアイテムのカテゴリ名\",\\n      \"amazon_keyword\": \"検索に使う短いキーワード\",\\n      \"reason\": \"そのアイテムが役立つ理由\",\\n      \"priority\": 1\\n    }\\n  ],\\n  \"prevention_tip\": \"再発防止や安全面の短いアドバイス\"\\n}",
   "monetization": [
     { "condition": "default", "type": "affiliate", "keyword": "{{products[0].amazon_keyword}}" }

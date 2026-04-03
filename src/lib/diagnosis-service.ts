@@ -56,6 +56,11 @@ export type DiagnosisExecutionResult =
       payload: { error: string; requestId?: string };
     };
 
+const RATE_LIMIT_ERROR_MESSAGE =
+  "診断回数の上限に達しました。時間をおいてから再度お試しください。";
+const SERVICE_UNAVAILABLE_ERROR_MESSAGE =
+  "診断サービスが混み合っています。しばらくしてから再度お試しください。";
+
 function parsePositiveInt(raw: string | undefined, fallback: number): number {
   const parsed = Number.parseInt(raw ?? "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -372,7 +377,7 @@ export async function executeDiagnosisRequest(
     return {
       ok: false,
       status: 503,
-      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+      payload: { error: SERVICE_UNAVAILABLE_ERROR_MESSAGE, requestId },
     };
   }
 
@@ -381,7 +386,7 @@ export async function executeDiagnosisRequest(
       return {
         ok: false,
         status: 429,
-        payload: { error: "Rate limit exceeded. Please try again tomorrow." },
+        payload: { error: RATE_LIMIT_ERROR_MESSAGE },
       };
     }
   } catch (error) {
@@ -392,7 +397,7 @@ export async function executeDiagnosisRequest(
     return {
       ok: false,
       status: 503,
-      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+      payload: { error: SERVICE_UNAVAILABLE_ERROR_MESSAGE, requestId },
     };
   }
 
@@ -489,7 +494,7 @@ export async function executeDiagnosisRequest(
     return {
       ok: false,
       status: 503,
-      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+      payload: { error: SERVICE_UNAVAILABLE_ERROR_MESSAGE, requestId },
     };
   }
 }

@@ -173,7 +173,7 @@ describe("diagnosis-service", () => {
       ok: false,
       status: 503,
       payload: {
-        error: "Diagnosis service temporarily unavailable",
+        error: "診断サービスが混み合っています。しばらくしてから再度お試しください。",
         requestId: "req-1",
       },
     });

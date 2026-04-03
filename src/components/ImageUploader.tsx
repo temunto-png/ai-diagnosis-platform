@@ -5,6 +5,7 @@ import { buildClientCacheKey } from "../lib/diagnosis-service";
 const ALLOWED_FILE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_UPLOAD_FILE_SIZE = 8 * 1024 * 1024;
 const CLIENT_CACHE_TTL_MS = 5 * 60 * 1000;
+const CLIENT_REQUEST_TIMEOUT_MS = 45 * 1000;
 
 type DiagnosisState =
   | { status: "idle" }
@@ -17,6 +18,7 @@ export type UploadDependencies = {
   storage: Pick<Storage, "getItem" | "setItem" | "removeItem">;
   hashBase64: (value: string) => Promise<string>;
   resizeImage: (file: File) => Promise<string>;
+  requestTimeoutMs?: number;
 };
 
 interface Props {
@@ -75,6 +77,45 @@ function getDefaultUploadDependencies(): UploadDependencies {
   };
 }
 
+function createTimedAbortSignal(
+  upstreamSignal?: AbortSignal,
+  timeoutMs = CLIENT_REQUEST_TIMEOUT_MS
+): { signal: AbortSignal; cleanup: () => void } {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  const abortFromUpstream = () => controller.abort();
+  if (upstreamSignal) {
+    if (upstreamSignal.aborted) {
+      controller.abort();
+    } else {
+      upstreamSignal.addEventListener("abort", abortFromUpstream, { once: true });
+    }
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clearTimeout(timeout);
+      upstreamSignal?.removeEventListener("abort", abortFromUpstream);
+    },
+  };
+}
+
+function mapDiagnosisErrorMessage(status: number, message?: string, requestId?: string): string {
+  if (status === 429) {
+    return "診断回数の上限に達しました。時間をおいてから再度お試しください。";
+  }
+
+  if (status === 503) {
+    return requestId
+      ? `診断サービスが混み合っています。しばらくしてから再度お試しください。（問い合わせID: ${requestId}）`
+      : "診断サービスが混み合っています。しばらくしてから再度お試しください。";
+  }
+
+  return message ?? `診断に失敗しました。サーバーエラー (${status})`;
+}
+
 export async function getOrFetchDiagnosis(
   file: File,
   appId: string,
@@ -97,21 +138,36 @@ export async function getOrFetchDiagnosis(
     }
   }
 
-  const response = await deps.fetchImpl(`/api/${appId}/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image, imageHash, context }),
-    signal,
-  });
+  const { signal: requestSignal, cleanup } = createTimedAbortSignal(signal, deps.requestTimeoutMs);
+  let response: Response;
+  try {
+    response = await deps.fetchImpl(`/api/${appId}/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image, imageHash, context }),
+      signal: requestSignal,
+    });
+  } catch (error) {
+    cleanup();
+    if (error instanceof Error && error.name === "AbortError") {
+      if (signal?.aborted) throw error;
+      throw new Error("診断がタイムアウトしました。通信環境を確認して、もう一度お試しください。");
+    }
+    if (error instanceof TypeError) {
+      throw new Error("診断リクエストの送信に失敗しました。ページを再読み込みして、もう一度お試しください。");
+    }
+    throw error;
+  }
+  cleanup();
 
   if (!response.ok) {
     const contentType = response.headers.get("content-type") ?? "";
     if (contentType.includes("application/json")) {
-      const error = (await response.json()) as { error?: string };
-      throw new Error(error.error ?? "診断に失敗しました。しばらくしてから再度お試しください。");
+      const error = (await response.json()) as { error?: string; requestId?: string };
+      throw new Error(mapDiagnosisErrorMessage(response.status, error.error, error.requestId));
     }
 
-    throw new Error(`診断に失敗しました。サーバーエラー (${response.status})`);
+    throw new Error(mapDiagnosisErrorMessage(response.status));
   }
 
   const data = normalizeDiagnosisData(await response.json());
