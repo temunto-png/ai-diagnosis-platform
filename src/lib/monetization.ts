@@ -1,11 +1,5 @@
 import type { MonetizationRule } from "../configs/index";
-
-type MonetizationResult = {
-  type: "affiliate" | "cpa" | "adsense";
-  amazon_url: string | null;
-  rakuten_url: string | null;
-  cpa_url: string | null;
-};
+import type { MonetizationResult } from "./types";
 
 /** "products[0].amazon_keyword" のようなパス式をオブジェクトから解決する */
 function resolvePath(obj: Record<string, unknown>, path: string): unknown {

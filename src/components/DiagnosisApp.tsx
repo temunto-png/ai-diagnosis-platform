@@ -2,13 +2,7 @@ import { useState, useMemo } from "react";
 import ImageUploader from "./ImageUploader";
 import DiagnosisResult from "./DiagnosisResult";
 import AffiliateBlock from "./AffiliateBlock";
-
-type Monetization = {
-  type: "affiliate" | "cpa" | "adsense";
-  amazon_url: string | null;
-  rakuten_url: string | null;
-  cpa_url: string | null;
-};
+import type { DiagnosisData } from "../lib/types";
 
 interface Props {
   appId: string;
@@ -37,24 +31,23 @@ function useDiagnosisCount(): number {
 }
 
 export default function DiagnosisApp({ appId, context = {} }: Props) {
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [result, setResult] = useState<DiagnosisData | null>(null);
   const diagnosisCount = useDiagnosisCount();
 
   const handleReset = () => setResult(null);
 
-  const handleResult = (data: Record<string, unknown>) => {
+  const handleResult = (data: DiagnosisData) => {
     setResult(data);
-    const severity = String(data.damage_level ?? data.severity ?? "unknown");
-    const monetization = data.monetization as { type?: string } | undefined;
+    const severity = data.damage_level ?? data.severity ?? "unknown";
     sendGtag("diagnosis_complete", {
       app_id: appId,
-      monetization_type: monetization?.type,
+      monetization_type: data.monetization?.type,
       severity,
     });
   };
 
   const severity = result
-    ? String(result.damage_level ?? result.severity ?? "unknown")
+    ? (result.damage_level ?? result.severity ?? "unknown")
     : "unknown";
 
   return (
@@ -88,7 +81,7 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
           <DiagnosisResult data={result} appId={appId} />
           {result.monetization && (
             <AffiliateBlock
-              monetization={result.monetization as Monetization}
+              monetization={result.monetization}
               appId={appId}
               severity={severity}
             />
