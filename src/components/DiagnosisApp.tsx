@@ -13,14 +13,14 @@ type GtagFn = (...args: unknown[]) => void;
 
 function sendGtag(event: string, params: Record<string, string | undefined>) {
   if (typeof window === "undefined") return;
-  const w = window as unknown as Record<string, unknown>;
-  if (typeof w["gtag"] === "function") {
-    (w["gtag"] as GtagFn)("event", event, params);
+  const candidate = window as unknown as Record<string, unknown>;
+  if (typeof candidate.gtag === "function") {
+    (candidate.gtag as GtagFn)("event", event, params);
   }
 }
 
 const BASE_COUNT = 120;
-const BASE_DATE = new Date("2026-04-01").getTime();
+const BASE_DATE = new Date("2026-04-01T00:00:00+09:00").getTime();
 const DAILY_INCREMENT = 5;
 
 function getDiagnosisCount(now = Date.now()): number {
@@ -44,29 +44,30 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
     });
   };
 
-  const severity = result
-    ? (result.damage_level ?? result.severity ?? "unknown")
-    : "unknown";
+  const severity = result ? (result.damage_level ?? result.severity ?? "unknown") : "unknown";
 
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <span style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.375rem",
-          background: "#fff7f0",
-          border: "1px solid #fdd9c0",
-          borderRadius: "9999px",
-          padding: "0.25rem 0.875rem",
-          fontSize: "0.8125rem",
-          color: "#c0582a",
-          fontWeight: 600,
-        }}>
-          <span style={{ fontSize: "0.9rem" }}>📊</span>
-          累計 {diagnosisCount.toLocaleString("ja-JP")} 人が診断済み
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            background: "#fff7f0",
+            border: "1px solid #fdd9c0",
+            borderRadius: "9999px",
+            padding: "0.25rem 0.875rem",
+            fontSize: "0.8125rem",
+            color: "#c0582a",
+            fontWeight: 600,
+          }}
+        >
+          <span style={{ fontSize: "0.9rem" }}>実績</span>
+          累計 {diagnosisCount.toLocaleString("ja-JP")} 件の診断をサポート
         </span>
       </div>
+
       <ImageUploader
         appId={appId}
         context={context}
@@ -74,6 +75,7 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
         onReset={handleReset}
         hasResult={result !== null}
       />
+
       {result && (
         <>
           <DiagnosisResult data={result} appId={appId} />

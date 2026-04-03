@@ -6,11 +6,26 @@ interface RateLimiterNamespace {
   getByName(name: string): RateLimiterStub;
 }
 
+const LOCAL_UTC_OFFSET_MINUTES = 9 * 60;
 const counts = new Map<string, { count: number }>();
 
-function buildRateLimitKey(ip: string): string {
-  const today = new Date().toISOString().slice(0, 10);
-  return `rate:${ip}:${today}`;
+function toLocalTime(date: Date): Date {
+  return new Date(date.getTime() + LOCAL_UTC_OFFSET_MINUTES * 60 * 1000);
+}
+
+export function buildRateLimitKey(ip: string, now = new Date()): string {
+  const localNow = toLocalTime(now);
+  const yyyy = localNow.getUTCFullYear();
+  const mm = String(localNow.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(localNow.getUTCDate()).padStart(2, "0");
+  return `rate:${ip}:${yyyy}-${mm}-${dd}`;
+}
+
+export function msUntilNextReset(now = new Date()): number {
+  const localNow = toLocalTime(now);
+  const nextLocalMidnight = new Date(localNow);
+  nextLocalMidnight.setUTCHours(24, 0, 0, 0);
+  return Math.max(1_000, nextLocalMidnight.getTime() - localNow.getTime());
 }
 
 export async function isRateLimited(
@@ -18,7 +33,8 @@ export async function isRateLimited(
   limit: number,
   namespace?: RateLimiterNamespace | null
 ): Promise<boolean> {
-  const key = buildRateLimitKey(ip);
+  const now = new Date();
+  const key = buildRateLimitKey(ip, now);
 
   if (namespace) {
     const stub = namespace.getByName(key);
@@ -26,7 +42,7 @@ export async function isRateLimited(
       new Request("https://internal-rate-limiter/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ limit }),
+        body: JSON.stringify({ limit, resetAfterMs: msUntilNextReset(now) }),
       })
     );
 
@@ -43,7 +59,9 @@ export async function isRateLimited(
     counts.set(key, { count: 1 });
     return false;
   }
+
   if (entry.count >= limit) return true;
+
   entry.count++;
   return false;
 }

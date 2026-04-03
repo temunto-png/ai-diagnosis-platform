@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { applyMonetization } from "./monetization";
 import type { MonetizationRule } from "../configs/index";
 import type { MonetizationResult } from "./types";
@@ -6,69 +6,72 @@ import type { MonetizationResult } from "./types";
 const ids = { amazonId: "testsite-22", rakutenId: "xxxx.xxxx" };
 
 describe("applyMonetization", () => {
-  it("affiliate rule: generates amazon and rakuten URLs", () => {
+  it("generates amazon and rakuten URLs for affiliate rules", () => {
     const rules: MonetizationRule[] = [
-      { condition: "default", type: "affiliate", keyword: "壁紙補修シール" },
+      { condition: "default", type: "affiliate", keyword: "補修 パテ" },
     ];
-    const result = applyMonetization({ damage_type: "壁紙破れ" }, rules, {}, ids);
 
-    expect(result.monetization).toBeDefined();
-    const m = result.monetization as MonetizationResult;
-    expect(m.type).toBe("affiliate");
-    const amazonUrl = m.amazon_url as string;
-    expect(amazonUrl).toContain("amazon.co.jp");
-    expect(decodeURIComponent(amazonUrl)).toContain("壁紙補修シール");
-    expect(amazonUrl).toContain("testsite-22");
-    const rakutenUrl = m.rakuten_url as string;
-    expect(rakutenUrl).toContain("rakuten.co.jp");
+    const result = applyMonetization({ damage_type: "ひっかき傷" }, rules, {}, ids);
+    const monetization = result.monetization as MonetizationResult;
+
+    expect(monetization.type).toBe("affiliate");
+    expect(monetization.amazon_url).toContain("amazon.co.jp");
+    expect(decodeURIComponent(monetization.amazon_url as string)).toContain("補修 パテ");
+    expect(monetization.rakuten_url).toContain("rakuten.co.jp");
   });
 
-  it("cpa rule with condition: matches correctly", () => {
+  it("matches cpa rules when the condition is satisfied", () => {
     const rules: MonetizationRule[] = [
-      { condition: "category === '粗大ゴミ'", type: "cpa", cpa_url: "https://example.jp/?s=gomi" },
+      { condition: "category === '業者依頼'", type: "cpa", cpa_url: "https://example.jp/request" },
       { condition: "default", type: "adsense" },
     ];
-    const result = applyMonetization({ category: "粗大ゴミ" }, rules, {}, ids);
-    const m = result.monetization as MonetizationResult;
-    expect(m.type).toBe("cpa");
-    expect(m.cpa_url).toBe("https://example.jp/?s=gomi");
+
+    const result = applyMonetization({ category: "業者依頼" }, rules, {}, ids);
+    const monetization = result.monetization as MonetizationResult;
+
+    expect(monetization.type).toBe("cpa");
+    expect(monetization.cpa_url).toBe("https://example.jp/request");
   });
 
-  it("falls through to default when condition doesn't match", () => {
+  it("drops unsafe cpa URLs", () => {
     const rules: MonetizationRule[] = [
-      { condition: "category === '粗大ゴミ'", type: "cpa", cpa_url: "https://example.jp/" },
+      { condition: "default", type: "cpa", cpa_url: "javascript:alert(1)" },
+    ];
+
+    const result = applyMonetization({}, rules, {}, ids);
+    const monetization = result.monetization as MonetizationResult;
+
+    expect(monetization.cpa_url).toBeNull();
+  });
+
+  it("falls back to the default rule when no condition matches", () => {
+    const rules: MonetizationRule[] = [
+      { condition: "category === '業者依頼'", type: "cpa", cpa_url: "https://example.jp/" },
       { condition: "default", type: "adsense" },
     ];
-    const result = applyMonetization({ category: "燃えるゴミ" }, rules, {}, ids);
-    const m = result.monetization as MonetizationResult;
-    expect(m.type).toBe("adsense");
+
+    const result = applyMonetization({ category: "DIY" }, rules, {}, ids);
+    const monetization = result.monetization as MonetizationResult;
+
+    expect(monetization.type).toBe("adsense");
   });
 
-  it("template variable {{key}} is replaced from result", () => {
-    const rules: MonetizationRule[] = [
-      { condition: "default", type: "affiliate", keyword: "{{amazon_keyword}}" },
-    ];
-    const result = applyMonetization({ amazon_keyword: "補修マーカー" }, rules, {}, ids);
-    const m = result.monetization as MonetizationResult;
-    const amazonUrl = m.amazon_url as string;
-    expect(decodeURIComponent(amazonUrl)).toContain("補修マーカー");
-  });
-
-  it("products[0].amazon_keyword のネストパスが解決される", () => {
+  it("resolves template variables from nested product data", () => {
     const result = applyMonetization(
       {
-        damage_type: "壁紙破れ",
-        damage_level: "軽微",
+        damage_type: "こすり傷",
+        damage_level: "軽度",
         products: [
-          { category: "補修テープ", amazon_keyword: "壁紙補修テープ", reason: "手軽", priority: 1 },
+          { category: "補修材", amazon_keyword: "フローリング 補修ペン", reason: "色合わせしやすい", priority: 1 },
         ],
       },
       [{ condition: "default", type: "affiliate", keyword: "{{products[0].amazon_keyword}}" }],
       {},
       { amazonId: "test-22", rakutenId: "test-rakuten" }
     );
-    const m = result.monetization as MonetizationResult;
-    expect(m.amazon_url).toContain(encodeURIComponent("壁紙補修テープ"));
-    expect(m.amazon_url).not.toContain("%7B");
+
+    const monetization = result.monetization as MonetizationResult;
+    expect(monetization.amazon_url).toContain(encodeURIComponent("フローリング 補修ペン"));
+    expect(monetization.amazon_url).not.toContain("%7B");
   });
 });

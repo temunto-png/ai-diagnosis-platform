@@ -20,6 +20,8 @@ type CloudflareEnv = {
   DIAGNOSIS_CACHE_TTL_SECONDS?: string;
   MAX_IMAGE_BASE64_LENGTH?: string;
   EXPECTED_ORIGIN?: string;
+  PUBLIC_GA_ID?: string;
+  PUBLIC_ADSENSE_CLIENT_ID?: string;
 };
 
 declare namespace App {

@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { AppConfig } from "../configs/index";
 import {
-  buildServerCacheKey,
   buildClientCacheKey,
   buildCorsHeaders,
+  buildServerCacheKey,
   executeDiagnosisRequest,
   interpolatePrompt,
   parseAnalyzeBody,
-  resolveClientIp,
   resolveAllowedOrigins,
+  resolveClientIp,
   resolveCorsHeaders,
   runDiagnosis,
   sanitizeContext,
   validateContentLength,
+  validateRequestBodySize,
   validateRequestOrigin,
 } from "./diagnosis-service";
 
@@ -40,7 +41,7 @@ describe("diagnosis-service", () => {
     expect(context).toEqual({ surface: 'wall"\nignore' });
   });
 
-  it("interpolates prompt with safe encoded values", () => {
+  it("interpolates prompt with safely encoded values", () => {
     const prompt = interpolatePrompt(config.prompt, { surface: 'kitchen "wall"' });
     expect(prompt).toContain("\"kitchen \\\"wall\\\"\"");
   });
@@ -64,7 +65,7 @@ describe("diagnosis-service", () => {
     })).toEqual(["https://satsu-tei.com", "http://localhost:4321"]);
   });
 
-  it("parses image and normalized image hash from body", () => {
+  it("parses image and normalized image hash from the body", () => {
     const input = parseAnalyzeBody(
       {
         image: "abc",
@@ -84,15 +85,16 @@ describe("diagnosis-service", () => {
     expect(key).toContain("b".repeat(64));
   });
 
-  it("echoes allowed request origin in CORS headers", () => {
+  it("echoes the allowed request origin in CORS headers", () => {
     const headers = resolveCorsHeaders(
       new Request("https://example.com", { headers: { Origin: "http://localhost:4321" } }),
       ["https://satsu-tei.com", "http://localhost:4321"]
     ) as Record<string, string>;
+
     expect(headers["Access-Control-Allow-Origin"]).toBe("http://localhost:4321");
   });
 
-  it("resolves client IP from trusted headers", () => {
+  it("resolves the client IP from trusted headers", () => {
     const request = new Request("https://example.com/api/test", {
       headers: { "CF-Connecting-IP": "203.0.113.10" },
     });
@@ -100,7 +102,7 @@ describe("diagnosis-service", () => {
     expect(resolveClientIp(request)).toBe("203.0.113.10");
   });
 
-  it("ignores spoofable proxy headers when Cloudflare IP header is absent", () => {
+  it("ignores spoofable proxy headers when the Cloudflare IP header is absent", () => {
     const request = new Request("https://example.com/api/test", {
       headers: { "X-Forwarded-For": "203.0.113.10, 10.0.0.1" },
     });
@@ -108,9 +110,8 @@ describe("diagnosis-service", () => {
     expect(resolveClientIp(request)).toBeNull();
   });
 
-  it("uses loopback IP for localhost development requests", () => {
+  it("uses the loopback IP for localhost development requests", () => {
     const request = new Request("http://localhost:4321/api/test");
-
     expect(resolveClientIp(request)).toBe("127.0.0.1");
   });
 
@@ -121,6 +122,16 @@ describe("diagnosis-service", () => {
     });
 
     expect(validateContentLength(request, {
+      ANTHROPIC_API_KEY: "x",
+      AMAZON_ASSOCIATE_ID: "y",
+      RAKUTEN_AFFILIATE_ID: "z",
+    })).toBe("Request body too large");
+  });
+
+  it("rejects oversized request bodies based on the actual body bytes", () => {
+    const body = "x".repeat(1_800_001);
+
+    expect(validateRequestBodySize(body, {
       ANTHROPIC_API_KEY: "x",
       AMAZON_ASSOCIATE_ID: "y",
       RAKUTEN_AFFILIATE_ID: "z",

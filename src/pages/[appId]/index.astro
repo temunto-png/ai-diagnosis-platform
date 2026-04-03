@@ -13,31 +13,26 @@ const { appId } = Astro.params;
 const config = getConfig(appId!);
 if (!config) return Astro.redirect("/404");
 
-const appMeta: Record<string, { icon: string; iconBg: string }> = {
-  "diy-repair":     { icon: "🔨", iconBg: "icon-bg-orange" },
-  "kabi-diagnosis": { icon: "🔬", iconBg: "icon-bg-green" },
+const appMeta: Record<string, { icon: string }> = {
+  "diy-repair": { icon: "🛠️" },
+  "kabi-diagnosis": { icon: "🦠" },
 };
-const meta = appMeta[appId!] ?? { icon: "🔍", iconBg: "icon-bg-blue" };
+const meta = appMeta[appId!] ?? { icon: "📷" };
 ---
 
 <Base title={config.seo.title} description={config.seo.description} ogImage={`/og/${appId}.png`}>
   <div class="tool-page">
-
-    <!-- ヘッダー -->
     <div class="tool-header">
       <span class="tool-icon">{meta.icon}</span>
       <h1 class="tool-title">{config.name}</h1>
       <p class="tool-desc">{config.description}</p>
     </div>
 
-    <!-- 使い方メモ -->
     <div class="how-to">
       <span class="how-to-icon">💡</span>
-      <span>気になる場所の写真を撮影してください。AIが状態を分析し、おすすめの対処法と商品を提案します。</span>
+      <span>写真をアップロードすると、AI が状態を解析し、原因の候補や対策のヒントをわかりやすく返します。</span>
     </div>
 
-    <!-- 診断コンポーネント -->
     <DiagnosisApp client:load appId={appId!} />
-
   </div>
 </Base>

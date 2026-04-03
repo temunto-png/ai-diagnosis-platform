@@ -1,4 +1,4 @@
-import type { DiagnosisData, ProductItem } from "../lib/types";
+import type { DiagnosisData } from "../lib/types";
 
 interface Props {
   data: DiagnosisData;
@@ -6,13 +6,16 @@ interface Props {
 }
 
 function severityBadge(value: string): { cls: string; label: string } {
-  const v = value.toLowerCase();
-  if (v.includes("軽") || v.includes("low") || v.includes("minor"))
-    return { cls: "badge-green", label: `✅ ${value}` };
-  if (v.includes("中") || v.includes("medium") || v.includes("moderate"))
-    return { cls: "badge-yellow", label: `⚠️ ${value}` };
-  if (v.includes("重") || v.includes("深") || v.includes("high") || v.includes("severe"))
-    return { cls: "badge-red", label: `🚨 ${value}` };
+  const normalized = value.toLowerCase();
+  if (normalized.includes("low") || normalized.includes("minor") || value.includes("軽")) {
+    return { cls: "badge-green", label: `軽度: ${value}` };
+  }
+  if (normalized.includes("medium") || normalized.includes("moderate") || value.includes("中")) {
+    return { cls: "badge-yellow", label: `中度: ${value}` };
+  }
+  if (normalized.includes("high") || normalized.includes("severe") || value.includes("重")) {
+    return { cls: "badge-red", label: `重度: ${value}` };
+  }
   return { cls: "badge-gray", label: value };
 }
 
@@ -26,15 +29,12 @@ export default function DiagnosisResult({ data }: Props) {
 
   return (
     <div className="result-card">
-      {/* ヘッダー */}
       <div className="result-card-header">
-        <span className="result-card-label">🔍 AI診断レポート</span>
-        <span className="result-brand">撮偵</span>
+        <span className="result-card-label">AI Diagnosis Result</span>
+        <span className="result-brand">さつてい</span>
       </div>
 
       <div className="result-body">
-
-        {/* 診断フィールド */}
         <div className="result-fields">
           {!!data.damage_type && (
             <div className="result-field">
@@ -56,37 +56,43 @@ export default function DiagnosisResult({ data }: Props) {
           )}
           {!!data.color_description && (
             <div className="result-field">
-              <div className="result-field-label">色の特徴</div>
+              <div className="result-field-label">見た目の特徴</div>
               <div className="result-field-value" style={{ fontSize: "0.875rem" }}>
                 {data.color_description}
               </div>
             </div>
           )}
+          {!!data.location && (
+            <div className="result-field">
+              <div className="result-field-label">発生箇所</div>
+              <div className="result-field-value">{data.location}</div>
+            </div>
+          )}
         </div>
 
-        {/* アドバイス */}
         {tip && (
           <div className="result-tip">
-            <div className="result-tip-heading">💡 アドバイス</div>
+            <div className="result-tip-heading">アドバイス</div>
             <p className="result-tip-text">{tip}</p>
           </div>
         )}
 
-        {/* おすすめ商品カテゴリ */}
         {products && products.length > 0 && (
           <div>
-            <div className="result-products-heading">🛒 おすすめ商品カテゴリ</div>
+            <div className="result-products-heading">おすすめの対策アイテム</div>
             <div className="product-items">
-              {products.map((p, i) => (
-                <div key={i} className="product-item">
-                  <div className="product-item-name">{p.category}</div>
-                  <div className="product-item-reason">{p.reason}</div>
+              {products.map((product) => (
+                <div
+                  key={`${product.category}:${product.priority}:${product.amazon_keyword}`}
+                  className="product-item"
+                >
+                  <div className="product-item-name">{product.category}</div>
+                  <div className="product-item-reason">{product.reason}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

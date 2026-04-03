@@ -23,6 +23,8 @@ export type DiagnosisEnvironment = {
   DIAGNOSIS_CACHE_TTL_SECONDS?: string;
   MAX_IMAGE_BASE64_LENGTH?: string;
   EXPECTED_ORIGIN?: string;
+  PUBLIC_GA_ID?: string;
+  PUBLIC_ADSENSE_CLIENT_ID?: string;
 };
 
 export type ClaudeCaller = (
@@ -51,6 +53,19 @@ export type DiagnosisExecutionResult =
       status: 400 | 413 | 429 | 503;
       payload: { error: string; requestId?: string };
     };
+
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function resolveMaxImageLength(env: DiagnosisEnvironment): number {
+  return parsePositiveInt(env.MAX_IMAGE_BASE64_LENGTH, 1_500_000);
+}
+
+function resolveCacheTtlSeconds(env: DiagnosisEnvironment): number {
+  return parsePositiveInt(env.DIAGNOSIS_CACHE_TTL_SECONDS, 86_400);
+}
 
 export function resolveAllowedOrigins(env: DiagnosisEnvironment): string[] {
   const origins = [env.EXPECTED_ORIGIN ?? "https://satsu-tei.com", "http://localhost:4321"];
@@ -114,7 +129,7 @@ export function sanitizeContext(raw: unknown, config: AppConfig): Record<string,
     Object.entries(raw as Record<string, unknown>)
       .filter(([key, value]) => allowed.has(key) && typeof value === "string")
       .slice(0, MAX_CONTEXT_KEYS)
-      .map(([key, value]) => [key, normalizeContextValue(value as string)])
+      .map(([key, value]) => [key, normalizeContextValue(value)])
   );
 }
 
@@ -132,7 +147,7 @@ export async function buildServerCacheKey(
 ): Promise<string> {
   const imageBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(image));
   const imageDigest = Array.from(new Uint8Array(imageBuf))
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
   const input = JSON.stringify({
     appId,
@@ -140,7 +155,7 @@ export async function buildServerCacheKey(
     context: Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b))),
   });
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function resolveClientImageHash(raw: unknown): string | null {
@@ -170,8 +185,7 @@ export function parseAnalyzeBody(
 }
 
 export function validateImageSize(image: string, env: DiagnosisEnvironment): string | null {
-  const maxImageLen = parseInt(env.MAX_IMAGE_BASE64_LENGTH ?? "1500000", 10);
-  if (image.length > maxImageLen) {
+  if (image.length > resolveMaxImageLength(env)) {
     return "Image payload too large";
   }
   return null;
@@ -184,9 +198,17 @@ export function validateContentLength(request: Request, env: DiagnosisEnvironmen
   const contentLength = Number(rawContentLength);
   if (!Number.isFinite(contentLength) || contentLength <= 0) return null;
 
-  const maxImageLen = parseInt(env.MAX_IMAGE_BASE64_LENGTH ?? "1500000", 10);
-  const maxJsonLen = Math.ceil(maxImageLen * 1.2);
+  const maxJsonLen = Math.ceil(resolveMaxImageLength(env) * 1.2);
   if (contentLength > maxJsonLen) {
+    return "Request body too large";
+  }
+  return null;
+}
+
+export function validateRequestBodySize(rawBody: string, env: DiagnosisEnvironment): string | null {
+  const maxJsonLen = Math.ceil(resolveMaxImageLength(env) * 1.2);
+  const bodyLength = new TextEncoder().encode(rawBody).length;
+  if (bodyLength > maxJsonLen) {
     return "Request body too large";
   }
   return null;
@@ -221,8 +243,9 @@ export async function persistCachedDiagnosis(
 ): Promise<void> {
   if (!cache || !cacheKey) return;
 
-  const ttl = parseInt(env.DIAGNOSIS_CACHE_TTL_SECONDS ?? "86400", 10);
-  await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: ttl });
+  await cache.put(cacheKey, JSON.stringify(payload), {
+    expirationTtl: resolveCacheTtlSeconds(env),
+  });
 }
 
 export function resolveClientIp(request: Request): string | null {
@@ -304,9 +327,29 @@ export async function executeDiagnosisRequest(
     };
   }
 
+  let rawText: string;
+  try {
+    rawText = await request.text();
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      payload: { error: "Invalid request body" },
+    };
+  }
+
+  const bodySizeError = validateRequestBodySize(rawText, env);
+  if (bodySizeError) {
+    return {
+      ok: false,
+      status: 413,
+      payload: { error: bodySizeError },
+    };
+  }
+
   let rawBody: { image?: unknown; imageHash?: unknown; context?: unknown };
   try {
-    rawBody = await request.json();
+    rawBody = JSON.parse(rawText) as { image?: unknown; imageHash?: unknown; context?: unknown };
   } catch {
     return {
       ok: false,

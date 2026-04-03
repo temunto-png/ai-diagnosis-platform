@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 
-const TTL_MS = 25 * 60 * 60 * 1000;
+const MAX_RESET_AFTER_MS = 26 * 60 * 60 * 1000;
 
 export class RateLimitDurableObject extends DurableObject {
   override async fetch(request: Request): Promise<Response> {
@@ -8,7 +8,7 @@ export class RateLimitDurableObject extends DurableObject {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
-    let body: { limit?: unknown };
+    let body: { limit?: unknown; resetAfterMs?: unknown };
     try {
       body = await request.json();
     } catch {
@@ -16,8 +16,12 @@ export class RateLimitDurableObject extends DurableObject {
     }
 
     const limit = Number(body.limit);
+    const resetAfterMs = Number(body.resetAfterMs);
     if (!Number.isInteger(limit) || limit <= 0) {
       return Response.json({ error: "Invalid limit" }, { status: 400 });
+    }
+    if (!Number.isInteger(resetAfterMs) || resetAfterMs <= 0 || resetAfterMs > MAX_RESET_AFTER_MS) {
+      return Response.json({ error: "Invalid resetAfterMs" }, { status: 400 });
     }
 
     const count = (await this.ctx.storage.get<number>("count")) ?? 0;
@@ -29,7 +33,7 @@ export class RateLimitDurableObject extends DurableObject {
 
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (currentAlarm === null) {
-      await this.ctx.storage.setAlarm(Date.now() + TTL_MS);
+      await this.ctx.storage.setAlarm(Date.now() + resetAfterMs);
     }
 
     return Response.json({ limited: false, count: count + 1 });

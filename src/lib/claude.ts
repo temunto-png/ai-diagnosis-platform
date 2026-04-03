@@ -1,4 +1,5 @@
 const MODEL = "claude-haiku-4-5-20251001";
+const IMAGE_ANALYSIS_INSTRUCTION = "画像を診断し、指定された JSON オブジェクトのみを返してください。";
 
 const DEFAULT_MAX_TOKENS = 500;
 const MIN_MAX_TOKENS = 200;
@@ -82,7 +83,7 @@ export async function callClaude(
                     type: "image",
                     source: { type: "base64", media_type: "image/jpeg", data: imageBase64 },
                   },
-                  { type: "text", text: "荳願ｨ倥・逕ｻ蜒上ｒ險ｺ譁ｭ縺励※縺上□縺輔＞縲・" },
+                  { type: "text", text: IMAGE_ANALYSIS_INSTRUCTION },
                 ],
               },
             ],
@@ -99,10 +100,10 @@ export async function callClaude(
       if (!response.ok) {
         let message = `Claude API error: ${response.status}`;
         try {
-          const err = await response.json() as { error?: { message?: string } };
-          message = err.error?.message ?? message;
+          const errorResponse = await response.json() as { error?: { message?: string } };
+          message = errorResponse.error?.message ?? message;
         } catch {
-          // non-JSON error response
+          // Ignore non-JSON error responses.
         }
         throw new Error(message);
       }
@@ -112,6 +113,7 @@ export async function callClaude(
       };
       const text = data.content.find((block) => block.type === "text")?.text ?? "{}";
       const cleaned = text.replace(/```json\n?|```\n?/g, "").trim();
+
       try {
         return JSON.parse(cleaned);
       } catch {

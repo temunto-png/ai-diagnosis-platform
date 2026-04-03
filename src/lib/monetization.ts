@@ -1,7 +1,8 @@
 import type { MonetizationRule } from "../configs/index";
 import type { MonetizationResult } from "./types";
 
-/** "products[0].amazon_keyword" のようなパス式をオブジェクトから解決する */
+const MAX_CPA_URL_LENGTH = 2048;
+
 function resolvePath(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".");
   return parts.reduce<unknown>((acc, key) => {
@@ -10,22 +11,39 @@ function resolvePath(obj: Record<string, unknown>, path: string): unknown {
   }, obj);
 }
 
+function sanitizeCpaUrl(raw?: string): string | null {
+  if (!raw) return null;
+
+  const normalized = raw.trim();
+  if (!normalized || normalized.length > MAX_CPA_URL_LENGTH) return null;
+
+  try {
+    const url = new URL(normalized);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function applyMonetization(
   result: Record<string, unknown>,
   rules: MonetizationRule[],
   context: Record<string, string>,
   ids: { amazonId: string; rakutenId: string }
 ): Record<string, unknown> & { monetization?: MonetizationResult } {
-  const rule = rules.find((r) => {
-    if (r.condition === "default") return true;
-    const [field, , rawValue] = r.condition.split(" ");
+  const rule = rules.find((candidate) => {
+    if (candidate.condition === "default") return true;
+
+    const [field, , rawValue] = candidate.condition.split(" ");
+    if (!field || !rawValue) return false;
+
     const value = rawValue.replace(/'/g, "");
     return String(result[field] ?? "") === value;
   });
 
   if (!rule) return result;
 
-  const merged = { ...result, ...Object.fromEntries(Object.entries(context)) };
+  const merged = { ...result, ...context };
   const keyword = (rule.keyword ?? "").replace(
     /\{\{([^}]+)\}\}/g,
     (_: string, path: string) => String(resolvePath(merged, path.trim()) ?? "")
@@ -41,7 +59,7 @@ export function applyMonetization(
       rule.type === "affiliate" && keyword
         ? `https://hb.afl.rakuten.co.jp/hgc/${ids.rakutenId}/?pc=https://search.rakuten.co.jp/search/mall/${encodeURIComponent(keyword)}/`
         : null,
-    cpa_url: rule.cpa_url ?? null,
+    cpa_url: rule.type === "cpa" ? sanitizeCpaUrl(rule.cpa_url) : null,
   };
 
   return { ...result, monetization };

@@ -1,14 +1,14 @@
 {
   "name": "DIY補修診断",
-  "description": "壁・床・木材の傷や汚れを撮影して補修材を診断",
+  "description": "壁や床などの傷を写真から診断し、DIYで対処しやすいかを判定します。",
   "daily_limit": 5,
-  "prompt": "あなたはDIY補修の専門家です。画像を解析し、以下のJSONのみを返してください（説明文不要）:\n{\n  \"damage_type\": \"壁紙破れ|木材傷|床傷|カビ|その他\",\n  \"damage_level\": \"軽微|中程度|重度\",\n  \"color_description\": \"色の説明\",\n  \"products\": [\n    {\n      \"category\": \"商品カテゴリ名\",\n      \"amazon_keyword\": \"Amazon検索キーワード\",\n      \"reason\": \"推奨理由（1文）\",\n      \"priority\": 1\n    }\n  ],\n  \"diy_tip\": \"補修のコツ（1〜2文）\"\n}",
+  "prompt": "あなたは住宅内の傷や補修状態を診断するDIY補修の専門家です。入力画像を見て、次の JSON オブジェクトのみを返してください。追加の文章やコードブロックは不要です。\n{\n  \"damage_type\": \"傷の種類を短く表現した文字列\",\n  \"damage_level\": \"軽度|中度|重度\",\n  \"color_description\": \"見た目の特徴を100文字以内で説明した文字列\",\n  \"products\": [\n    {\n      \"category\": \"おすすめアイテムのカテゴリ名\",\n      \"amazon_keyword\": \"検索用キーワード\",\n      \"reason\": \"そのアイテムを勧める理由\",\n      \"priority\": 1\n    }\n  ],\n  \"diy_tip\": \"安全に配慮したDIY補修アドバイス\"\n}",
   "monetization": [
     { "condition": "default", "type": "affiliate", "keyword": "{{products[0].amazon_keyword}}" }
   ],
   "seo": {
-    "title": "DIY補修材を診断 | AI補修診断",
-    "description": "壁紙・床・木材の傷を撮影するだけでAIが補修材を提案します",
-    "keywords": ["壁紙 補修 DIY", "フローリング 傷 補修", "賃貸 壁 穴 補修"]
+    "title": "DIY傷診断 | AI写真診断",
+    "description": "壁・床・家具などの傷を写真1枚でAIが診断し、DIY補修のヒントを返します。",
+    "keywords": ["DIY 傷診断", "壁の傷 補修", "床の傷 AI診断"]
   }
 }

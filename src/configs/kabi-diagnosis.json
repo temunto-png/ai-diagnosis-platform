@@ -1,14 +1,14 @@
 {
   "name": "カビ診断",
-  "description": "壁・浴室・押入れのカビを撮影して対処法と洗剤を診断",
+  "description": "写真からカビの可能性や深刻度を推定し、初動対応のヒントを返します。",
   "daily_limit": 5,
-  "prompt": "あなたはカビ・防カビの専門家です。画像を解析し、以下のJSONのみを返してください（説明文不要）:\n{\n  \"mold_type\": \"黒カビ|白カビ|ピンクカビ|その他\",\n  \"severity\": \"初期|中程度|重度\",\n  \"location\": \"浴室|壁|天井|押入れ|その他\",\n  \"products\": [\n    {\n      \"category\": \"商品カテゴリ名\",\n      \"amazon_keyword\": \"Amazon検索キーワード\",\n      \"reason\": \"推奨理由（1文）\",\n      \"priority\": 1\n    }\n  ],\n  \"prevention_tip\": \"再発防止のコツ（1〜2文）\"\n}",
+  "prompt": "あなたは住環境のカビ診断に詳しい専門家です。入力画像を見て、次の JSON オブジェクトのみを返してください。追加の文章やコードブロックは不要です。\n{\n  \"mold_type\": \"想定されるカビの種類または状態\",\n  \"severity\": \"軽度|中度|重度\",\n  \"location\": \"画像から判断できる発生箇所\",\n  \"products\": [\n    {\n      \"category\": \"おすすめアイテムのカテゴリ名\",\n      \"amazon_keyword\": \"検索用キーワード\",\n      \"reason\": \"そのアイテムを勧める理由\",\n      \"priority\": 1\n    }\n  ],\n  \"prevention_tip\": \"換気や清掃を含む再発防止アドバイス\"\n}",
   "monetization": [
     { "condition": "default", "type": "affiliate", "keyword": "{{products[0].amazon_keyword}}" }
   ],
   "seo": {
-    "title": "カビ診断 | AIカビ対策診断",
-    "description": "カビを撮影するだけでAIが種類を特定し最適な洗剤を提案します",
-    "keywords": ["カビ 洗剤 おすすめ", "黒カビ 落とし方", "浴室 カビ 防止"]
+    "title": "カビ診断 | AI写真診断",
+    "description": "壁や水回りの写真からAIがカビの可能性と対策の方向性を診断します。",
+    "keywords": ["カビ 診断", "壁 カビ AI", "水回り カビ対策"]
   }
 }
