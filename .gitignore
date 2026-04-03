@@ -8,3 +8,4 @@ key.txt
 .astro/
 .wrangler/
 .worktrees/
+.playwright-mcp/
