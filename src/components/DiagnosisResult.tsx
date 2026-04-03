@@ -42,13 +42,13 @@ export default function DiagnosisResult({ data }: Props) {
 
         {/* 診断フィールド */}
         <div className="result-fields">
-          {data.damage_type && (
+          {!!data.damage_type && (
             <div className="result-field">
               <div className="result-field-label">損傷タイプ</div>
               <div className="result-field-value">{String(data.damage_type)}</div>
             </div>
           )}
-          {data.mold_type && (
+          {!!data.mold_type && (
             <div className="result-field">
               <div className="result-field-label">カビの種類</div>
               <div className="result-field-value">{String(data.mold_type)}</div>
@@ -60,7 +60,7 @@ export default function DiagnosisResult({ data }: Props) {
               <span className={`badge ${badge.cls}`}>{badge.label}</span>
             </div>
           )}
-          {data.color_description && (
+          {!!data.color_description && (
             <div className="result-field">
               <div className="result-field-label">色の特徴</div>
               <div className="result-field-value" style={{ fontSize: "0.875rem" }}>

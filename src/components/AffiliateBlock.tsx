@@ -7,9 +7,31 @@ type MonetizationData = {
 
 interface Props {
   monetization: MonetizationData;
+  appId: string;
+  severity: string;
 }
 
-export default function AffiliateBlock({ monetization }: Props) {
+type GtagFn = (...args: unknown[]) => void;
+
+function sendAffiliateClick(params: {
+  appId: string;
+  destination: "amazon" | "rakuten" | "cpa";
+  monetizationType: string;
+  severity: string;
+}) {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as Record<string, unknown>;
+  if (typeof w["gtag"] === "function") {
+    (w["gtag"] as GtagFn)("event", "affiliate_click", {
+      app_id: params.appId,
+      destination: params.destination,
+      monetization_type: params.monetizationType,
+      severity: params.severity,
+    });
+  }
+}
+
+export default function AffiliateBlock({ monetization, appId, severity }: Props) {
   if (!monetization) return null;
 
   if (monetization.type === "affiliate") {
@@ -26,6 +48,7 @@ export default function AffiliateBlock({ monetization }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               className="affiliate-btn affiliate-btn-amazon"
+              onClick={() => sendAffiliateClick({ appId, destination: "amazon", monetizationType: monetization.type, severity })}
             >
               <span className="affiliate-btn-icon">📦</span>
               <span>
@@ -40,6 +63,7 @@ export default function AffiliateBlock({ monetization }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               className="affiliate-btn affiliate-btn-rakuten"
+              onClick={() => sendAffiliateClick({ appId, destination: "rakuten", monetizationType: monetization.type, severity })}
             >
               <span className="affiliate-btn-icon">🛍️</span>
               <span>
@@ -69,6 +93,7 @@ export default function AffiliateBlock({ monetization }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className="affiliate-btn affiliate-btn-cpa"
+            onClick={() => sendAffiliateClick({ appId, destination: "cpa", monetizationType: monetization.type, severity })}
           >
             <span className="affiliate-btn-icon">📋</span>
             無料で見積もり・相談する

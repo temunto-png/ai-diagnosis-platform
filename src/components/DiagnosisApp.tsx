@@ -15,6 +15,16 @@ interface Props {
   context?: Record<string, string>;
 }
 
+type GtagFn = (...args: unknown[]) => void;
+
+function sendGtag(event: string, params: Record<string, string | undefined>) {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as Record<string, unknown>;
+  if (typeof w["gtag"] === "function") {
+    (w["gtag"] as GtagFn)("event", event, params);
+  }
+}
+
 const BASE_COUNT = 120;
 const BASE_DATE = new Date("2026-04-01").getTime();
 const DAILY_INCREMENT = 5;
@@ -31,6 +41,21 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
   const diagnosisCount = useDiagnosisCount();
 
   const handleReset = () => setResult(null);
+
+  const handleResult = (data: Record<string, unknown>) => {
+    setResult(data);
+    const severity = String(data.damage_level ?? data.severity ?? "unknown");
+    const monetization = data.monetization as { type?: string } | undefined;
+    sendGtag("diagnosis_complete", {
+      app_id: appId,
+      monetization_type: monetization?.type,
+      severity,
+    });
+  };
+
+  const severity = result
+    ? String(result.damage_level ?? result.severity ?? "unknown")
+    : "unknown";
 
   return (
     <div>
@@ -54,7 +79,7 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
       <ImageUploader
         appId={appId}
         context={context}
-        onResult={setResult}
+        onResult={handleResult}
         onReset={handleReset}
         hasResult={result !== null}
       />
@@ -62,7 +87,11 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
         <>
           <DiagnosisResult data={result} appId={appId} />
           {result.monetization && (
-            <AffiliateBlock monetization={result.monetization as Monetization} />
+            <AffiliateBlock
+              monetization={result.monetization as Monetization}
+              appId={appId}
+              severity={severity}
+            />
           )}
         </>
       )}
