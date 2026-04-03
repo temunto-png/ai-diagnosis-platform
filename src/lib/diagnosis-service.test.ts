@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AppConfig } from "../configs/index";
 import {
+  buildDiagnosisCacheVersion,
   buildClientCacheKey,
   buildCorsHeaders,
   buildServerCacheKey,
@@ -10,12 +11,15 @@ import {
   resolveAllowedOrigins,
   resolveClientIp,
   resolveCorsHeaders,
+  readRequestBodyWithLimit,
   runDiagnosis,
   sanitizeContext,
   validateContentLength,
   validateRequestBodySize,
   validateRequestOrigin,
 } from "./diagnosis-service";
+
+const VALID_JPEG_BASE64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2w==";
 
 const config: AppConfig = {
   name: "Test",
@@ -68,7 +72,7 @@ describe("diagnosis-service", () => {
   it("parses image and normalized image hash from the body", () => {
     const input = parseAnalyzeBody(
       {
-        image: "abc",
+        image: VALID_JPEG_BASE64,
         imageHash: "a".repeat(64),
         context: { surface: "wall", ignored: "x" },
       },
@@ -80,9 +84,10 @@ describe("diagnosis-service", () => {
   });
 
   it("builds stable client cache keys from app, hash and context", () => {
-    const key = buildClientCacheKey("app", "b".repeat(64), { surface: "wall" });
+    const key = buildClientCacheKey("app", "b".repeat(64), { surface: "wall" }, "v2:test");
     expect(key).toContain("app");
     expect(key).toContain("b".repeat(64));
+    expect(key).toContain("v2:test");
   });
 
   it("echoes the allowed request origin in CORS headers", () => {
@@ -145,7 +150,7 @@ describe("diagnosis-service", () => {
         Origin: "https://satsu-tei.com",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ image: "abc", imageHash: "a".repeat(64) }),
+      body: JSON.stringify({ image: VALID_JPEG_BASE64, imageHash: "a".repeat(64) }),
     });
 
     const result = await executeDiagnosisRequest(
@@ -175,16 +180,42 @@ describe("diagnosis-service", () => {
   });
 
   it("builds distinct server cache keys for different images", async () => {
-    const first = await buildServerCacheKey("app", "image-one", { surface: "wall" });
-    const second = await buildServerCacheKey("app", "image-two", { surface: "wall" });
+    const first = await buildServerCacheKey("app", "image-one", { surface: "wall" }, "v2:test");
+    const second = await buildServerCacheKey("app", "image-two", { surface: "wall" }, "v2:test");
 
     expect(first).not.toBe(second);
+  });
+
+  it("changes the cache version when the prompt changes", () => {
+    expect(buildDiagnosisCacheVersion("prompt-a")).not.toBe(buildDiagnosisCacheVersion("prompt-b"));
+  });
+
+  it("rejects invalid non-jpeg image payloads", () => {
+    expect(() =>
+      parseAnalyzeBody({ image: "bm90LWEtanBlZw==", imageHash: "a".repeat(64) }, config)
+    ).toThrow("image must be a valid JPEG base64 payload");
+  });
+
+  it("stops reading request bodies that exceed the byte limit", async () => {
+    const request = new Request("https://example.com/api/test", {
+      method: "POST",
+      body: new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("12345"));
+          controller.enqueue(new TextEncoder().encode("67890"));
+          controller.close();
+        },
+      }),
+      duplex: "half",
+    } as RequestInit & { duplex: "half" });
+
+    await expect(readRequestBodyWithLimit(request, 8)).rejects.toThrow("Request body too large");
   });
 
   it("normalizes Claude output before monetization", async () => {
     const result = await runDiagnosis(
       {
-        image: "abc",
+        image: VALID_JPEG_BASE64,
         imageHash: "a".repeat(64),
         context: { surface: "wall" },
       },

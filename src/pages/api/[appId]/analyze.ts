@@ -58,12 +58,14 @@ export function createAnalyzeRoute(
         return Response.json(result.payload, { status: result.status, headers: corsHeaders });
       }
 
-      persistCachedDiagnosis(runtimeEnv.DIAGNOSIS_CACHE_KV, result.cacheKey, result.payload, runtimeEnv).catch((error) => {
+      try {
+        await persistCachedDiagnosis(runtimeEnv.DIAGNOSIS_CACHE_KV, result.cacheKey, result.payload, runtimeEnv);
+      } catch (error) {
         console.error(
           `[${requestId}] Failed to persist diagnosis cache:`,
           error instanceof Error ? error.message : error
         );
-      });
+      }
       return Response.json(result.payload, { headers: corsHeaders });
     } catch (error) {
       console.error(`[${requestId}] Unhandled error:`, error instanceof Error ? error.message : error);

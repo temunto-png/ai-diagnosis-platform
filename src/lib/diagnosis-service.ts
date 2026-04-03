@@ -1,11 +1,13 @@
 import type { AppConfig } from "../configs/index";
 import { applyMonetization } from "./monetization";
-import { resolveMaxTokens } from "./claude";
+import { CLAUDE_MODEL, resolveMaxTokens } from "./claude";
 import { normalizeDiagnosisData } from "./types";
 
 const MAX_CONTEXT_KEYS = 10;
 const MAX_CONTEXT_VALUE_LEN = 100;
 const HASH_PATTERN = /^[a-f0-9]{64}$/;
+const CACHE_SCHEMA_VERSION = "v2";
+const JPEG_MAGIC_BYTES = [0xff, 0xd8, 0xff];
 
 export type RateLimitNamespace = {
   getByName(name: string): {
@@ -65,6 +67,19 @@ function resolveMaxImageLength(env: DiagnosisEnvironment): number {
 
 function resolveCacheTtlSeconds(env: DiagnosisEnvironment): number {
   return parsePositiveInt(env.DIAGNOSIS_CACHE_TTL_SECONDS, 86_400);
+}
+
+function fnv1a(input: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < input.length; index++) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+export function buildDiagnosisCacheVersion(prompt: string): string {
+  return `${CACHE_SCHEMA_VERSION}:${CLAUDE_MODEL}:${fnv1a(prompt)}`;
 }
 
 export function resolveAllowedOrigins(env: DiagnosisEnvironment): string[] {
@@ -129,7 +144,7 @@ export function sanitizeContext(raw: unknown, config: AppConfig): Record<string,
     Object.entries(raw as Record<string, unknown>)
       .filter(([key, value]) => allowed.has(key) && typeof value === "string")
       .slice(0, MAX_CONTEXT_KEYS)
-      .map(([key, value]) => [key, normalizeContextValue(value)])
+      .map(([key, value]) => [key, normalizeContextValue(value as string)])
   );
 }
 
@@ -143,7 +158,8 @@ export function interpolatePrompt(template: string, context: Record<string, stri
 export async function buildServerCacheKey(
   appId: string,
   image: string,
-  context: Record<string, string>
+  context: Record<string, string>,
+  cacheVersion: string
 ): Promise<string> {
   const imageBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(image));
   const imageDigest = Array.from(new Uint8Array(imageBuf))
@@ -151,6 +167,7 @@ export async function buildServerCacheKey(
     .join("");
   const input = JSON.stringify({
     appId,
+    cacheVersion,
     imageDigest,
     context: Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b))),
   });
@@ -169,12 +186,37 @@ export type AnalyzeInput = {
   context: Record<string, string>;
 };
 
+function isBase64Payload(value: string): boolean {
+  return value.length > 0 && value.length % 4 === 0 && /^[A-Za-z0-9+/]+=*$/.test(value);
+}
+
+function decodeBase64Prefix(value: string): Uint8Array | null {
+  try {
+    const decoded = atob(value.slice(0, 16));
+    return Uint8Array.from(decoded, (char) => char.charCodeAt(0));
+  } catch {
+    return null;
+  }
+}
+
+function isSupportedImageBase64(value: string): boolean {
+  if (!isBase64Payload(value)) return false;
+
+  const decoded = decodeBase64Prefix(value);
+  if (!decoded || decoded.length < JPEG_MAGIC_BYTES.length) return false;
+
+  return JPEG_MAGIC_BYTES.every((byte, index) => decoded[index] === byte);
+}
+
 export function parseAnalyzeBody(
   body: { image?: unknown; imageHash?: unknown; context?: unknown },
   config: AppConfig
 ): AnalyzeInput {
   if (typeof body.image !== "string" || body.image.length === 0) {
     throw new Error("image field is required");
+  }
+  if (!isSupportedImageBase64(body.image)) {
+    throw new Error("image must be a valid JPEG base64 payload");
   }
 
   return {
@@ -214,6 +256,37 @@ export function validateRequestBodySize(rawBody: string, env: DiagnosisEnvironme
   return null;
 }
 
+export async function readRequestBodyWithLimit(request: Request, maxBytes: number): Promise<string> {
+  if (!request.body) {
+    throw new Error("Invalid request body");
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      throw new Error("Request body too large");
+    }
+    chunks.push(value);
+  }
+
+  const merged = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return new TextDecoder().decode(merged);
+}
+
 export async function readCachedDiagnosis(
   cache: KVNamespace | undefined,
   cacheKey: string | null
@@ -228,11 +301,16 @@ export async function readCachedDiagnosis(
   }
 }
 
-export function buildClientCacheKey(appId: string, imageHash: string, context: Record<string, string>): string {
+export function buildClientCacheKey(
+  appId: string,
+  imageHash: string,
+  context: Record<string, string>,
+  cacheVersion: string
+): string {
   const contextKey = JSON.stringify(
     Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
   );
-  return `result:${appId}:${imageHash}:${contextKey}`;
+  return `result:${appId}:${cacheVersion}:${imageHash}:${contextKey}`;
 }
 
 export async function persistCachedDiagnosis(
@@ -327,10 +405,18 @@ export async function executeDiagnosisRequest(
     };
   }
 
+  const maxJsonLen = Math.ceil(resolveMaxImageLength(env) * 1.2);
   let rawText: string;
   try {
-    rawText = await request.text();
-  } catch {
+    rawText = await readRequestBodyWithLimit(request, maxJsonLen);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Request body too large") {
+      return {
+        ok: false,
+        status: 413,
+        payload: { error: error.message },
+      };
+    }
     return {
       ok: false,
       status: 400,
@@ -381,7 +467,8 @@ export async function executeDiagnosisRequest(
   let cacheKey: string | null = null;
   if (env.DIAGNOSIS_CACHE_KV) {
     try {
-      cacheKey = await buildServerCacheKey(appId, input.image, input.context);
+      const cacheVersion = buildDiagnosisCacheVersion(config.prompt);
+      cacheKey = await buildServerCacheKey(appId, input.image, input.context, cacheVersion);
       const cached = await readCachedDiagnosis(env.DIAGNOSIS_CACHE_KV, cacheKey);
       if (cached) {
         return { ok: true, payload: cached, cacheKey };

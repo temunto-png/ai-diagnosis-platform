@@ -7,7 +7,7 @@ interface RateLimiterNamespace {
 }
 
 const LOCAL_UTC_OFFSET_MINUTES = 9 * 60;
-const counts = new Map<string, { count: number }>();
+const counts = new Map<string, { count: number; expiresAt: number }>();
 
 function toLocalTime(date: Date): Date {
   return new Date(date.getTime() + LOCAL_UTC_OFFSET_MINUTES * 60 * 1000);
@@ -54,9 +54,16 @@ export async function isRateLimited(
     return data.limited === true;
   }
 
+  const nowMs = now.getTime();
+  for (const [existingKey, entry] of counts) {
+    if (entry.expiresAt <= nowMs) {
+      counts.delete(existingKey);
+    }
+  }
+
   const entry = counts.get(key);
   if (!entry) {
-    counts.set(key, { count: 1 });
+    counts.set(key, { count: 1, expiresAt: nowMs + msUntilNextReset(now) });
     return false;
   }
 

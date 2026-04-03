@@ -3,7 +3,7 @@ import { DurableObject } from "cloudflare:workers";
 const MAX_RESET_AFTER_MS = 26 * 60 * 60 * 1000;
 
 export class RateLimitDurableObject extends DurableObject {
-  override async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request): Promise<Response> {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
     }
@@ -39,7 +39,7 @@ export class RateLimitDurableObject extends DurableObject {
     return Response.json({ limited: false, count: count + 1 });
   }
 
-  override async alarm(): Promise<void> {
+  async alarm(): Promise<void> {
     await this.ctx.storage.deleteAll();
   }
 }
