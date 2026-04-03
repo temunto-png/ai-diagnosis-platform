@@ -108,6 +108,12 @@ describe("diagnosis-service", () => {
     expect(resolveClientIp(request)).toBeNull();
   });
 
+  it("uses loopback IP for localhost development requests", () => {
+    const request = new Request("http://localhost:4321/api/test");
+
+    expect(resolveClientIp(request)).toBe("127.0.0.1");
+  });
+
   it("rejects oversized request bodies before parsing JSON", () => {
     const request = new Request("https://example.com/api/test", {
       method: "POST",

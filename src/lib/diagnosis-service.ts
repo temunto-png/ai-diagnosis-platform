@@ -227,7 +227,14 @@ export async function persistCachedDiagnosis(
 
 export function resolveClientIp(request: Request): string | null {
   const cfIp = request.headers.get("CF-Connecting-IP");
-  return cfIp?.trim() || null;
+  if (cfIp?.trim()) return cfIp.trim();
+
+  const { hostname } = new URL(request.url);
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "127.0.0.1";
+  }
+
+  return null;
 }
 
 export async function runDiagnosis(
