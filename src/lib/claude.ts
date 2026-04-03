@@ -1,5 +1,6 @@
-const MODEL = "claude-haiku-4-5-20251001";
-const IMAGE_ANALYSIS_INSTRUCTION = "画像を診断し、指定された JSON オブジェクトのみを返してください。";
+export const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
+const IMAGE_ANALYSIS_INSTRUCTION =
+  "画像を診断し、説明文を含めずに JSON オブジェクトだけを返してください。";
 
 const DEFAULT_MAX_TOKENS = 500;
 const MIN_MAX_TOKENS = 200;
@@ -50,7 +51,8 @@ export async function callClaude(
 ): Promise<Record<string, unknown>> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const sleep =
+    options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -66,7 +68,7 @@ export async function callClaude(
             "content-type": "application/json",
           },
           body: JSON.stringify({
-            model: MODEL,
+            model: CLAUDE_MODEL,
             max_tokens: maxTokens,
             system: [
               {
@@ -93,14 +95,14 @@ export async function callClaude(
       );
 
       if (shouldRetryStatus(response.status) && attempt < maxRetries - 1) {
-        await sleep(1000 * Math.pow(2, attempt));
+        await sleep(1000 * 2 ** attempt);
         continue;
       }
 
       if (!response.ok) {
         let message = `Claude API error: ${response.status}`;
         try {
-          const errorResponse = await response.json() as { error?: { message?: string } };
+          const errorResponse = (await response.json()) as { error?: { message?: string } };
           message = errorResponse.error?.message ?? message;
         } catch {
           // Ignore non-JSON error responses.
@@ -108,7 +110,7 @@ export async function callClaude(
         throw new Error(message);
       }
 
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         content: Array<{ type: string; text: string }>;
       };
       const text = data.content.find((block) => block.type === "text")?.text ?? "{}";
@@ -122,7 +124,7 @@ export async function callClaude(
     } catch (error) {
       const isAbort = error instanceof Error && error.name === "AbortError";
       if ((isAbort || error instanceof TypeError) && attempt < maxRetries - 1) {
-        await sleep(1000 * Math.pow(2, attempt));
+        await sleep(1000 * 2 ** attempt);
         continue;
       }
       if (isAbort) {

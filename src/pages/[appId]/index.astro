@@ -4,6 +4,7 @@ export const prerender = true;
 import Base from "../../layouts/Base.astro";
 import DiagnosisApp from "../../components/DiagnosisApp";
 import { getConfig, listApps } from "../../configs/index";
+import { buildDiagnosisCacheVersion } from "../../lib/diagnosis-service";
 
 export async function getStaticPaths() {
   return listApps().map(({ id }) => ({ params: { appId: id } }));
@@ -12,12 +13,13 @@ export async function getStaticPaths() {
 const { appId } = Astro.params;
 const config = getConfig(appId!);
 if (!config) return Astro.redirect("/404");
+const cacheVersion = buildDiagnosisCacheVersion(config.prompt);
 
 const appMeta: Record<string, { icon: string }> = {
-  "diy-repair": { icon: "🛠️" },
-  "kabi-diagnosis": { icon: "🦠" },
+  "diy-repair": { icon: "修理" },
+  "kabi-diagnosis": { icon: "カビ" },
 };
-const meta = appMeta[appId!] ?? { icon: "📷" };
+const meta = appMeta[appId!] ?? { icon: "診断" };
 ---
 
 <Base title={config.seo.title} description={config.seo.description} ogImage={`/og/${appId}.png`}>
@@ -29,10 +31,12 @@ const meta = appMeta[appId!] ?? { icon: "📷" };
     </div>
 
     <div class="how-to">
-      <span class="how-to-icon">💡</span>
-      <span>写真をアップロードすると、AI が状態を解析し、原因の候補や対策のヒントをわかりやすく返します。</span>
+      <span class="how-to-icon">手順</span>
+      <span>
+        画像をアップロードすると、AI が状態を解析し、対処の方向性や参考アイテムをわかりやすく表示します。
+      </span>
     </div>
 
-    <DiagnosisApp client:load appId={appId!} />
+    <DiagnosisApp client:load appId={appId!} cacheVersion={cacheVersion} />
   </div>
 </Base>

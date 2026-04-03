@@ -12,9 +12,9 @@ export type ProductItem = {
   priority: number;
 };
 
-/** Claude API から返される診断結果の共通スキーマ（全フィールドはオプショナル） */
+/** Claude API から返される診断結果の共通フィールド定義 */
 export type DiagnosisData = {
-  // DIY補修診断
+  // DIY 修理診断
   damage_type?: string;
   damage_level?: string;
   color_description?: string;
@@ -48,9 +48,10 @@ function normalizeProductItem(value: unknown): ProductItem | null {
   const amazonKeyword = trimString(item.amazon_keyword, MAX_SHORT_TEXT_LEN);
   const reason = trimString(item.reason, MAX_MEDIUM_TEXT_LEN);
   const priorityRaw = item.priority;
-  const priority = typeof priorityRaw === "number" && Number.isFinite(priorityRaw)
-    ? Math.max(0, Math.trunc(priorityRaw))
-    : 0;
+  const priority =
+    typeof priorityRaw === "number" && Number.isFinite(priorityRaw)
+      ? Math.max(0, Math.trunc(priorityRaw))
+      : 0;
 
   if (!category || !amazonKeyword || !reason) return null;
 
@@ -59,6 +60,27 @@ function normalizeProductItem(value: unknown): ProductItem | null {
     amazon_keyword: amazonKeyword,
     reason,
     priority,
+  };
+}
+
+function normalizeUrl(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function normalizeMonetization(value: unknown): MonetizationResult | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+
+  const raw = value as Record<string, unknown>;
+  const type = raw.type;
+  if (type !== "affiliate" && type !== "cpa" && type !== "adsense") {
+    return undefined;
+  }
+
+  return {
+    type,
+    amazon_url: normalizeUrl(raw.amazon_url),
+    rakuten_url: normalizeUrl(raw.rakuten_url),
+    cpa_url: normalizeUrl(raw.cpa_url),
   };
 }
 
@@ -85,5 +107,6 @@ export function normalizeDiagnosisData(input: unknown): DiagnosisData {
     location: trimString(raw.location, MAX_SHORT_TEXT_LEN),
     prevention_tip: trimString(raw.prevention_tip, MAX_LONG_TEXT_LEN),
     products: products && products.length > 0 ? products : undefined,
+    monetization: normalizeMonetization(raw.monetization),
   };
 }

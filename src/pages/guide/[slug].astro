@@ -35,14 +35,13 @@ const diagnosisType = kabiCategories.includes(entry.data.category)
   />
 
   <article class="article-page">
-
     <header class="article-header">
       <h1 class="article-title">{entry.data.title}</h1>
       <time class="article-date" datetime={entry.data.pubDate.toISOString()}>
         {entry.data.pubDate.toLocaleDateString("ja-JP")}
       </time>
       <p class="article-meta-note">
-        🤖 AIと専門データベースの組み合わせで診断精度を追求しています
+        記事の内容とあわせて、画像診断ツールで現在の状態も確認できます。
       </p>
     </header>
 
@@ -57,9 +56,8 @@ const diagnosisType = kabiCategories.includes(entry.data.category)
     <AdUnit />
 
     <nav class="article-back">
-      <a href="/guide/">← ガイド一覧に戻る</a>
+      <a href="/guide/">ガイド一覧に戻る</a>
     </nav>
-
   </article>
 </Base>
 

@@ -10,7 +10,9 @@ if (!config) return Astro.redirect("/404");
 <Base title={`診断結果 | ${config.name}`}>
   <div class="article-page">
     <h1 class="page-title">診断結果</h1>
-    <p class="page-desc">このページは共有用の結果ページです。診断を続ける場合はツール画面に戻ってください。</p>
+    <p class="page-desc">
+      このページは共有用の診断結果ページです。診断した結果を確認したい場合は、元の診断ツール画面に戻ってください。
+    </p>
     <p class="article-back"><a href={`/${appId}/`}>診断ツールに戻る</a></p>
   </div>
 </Base>

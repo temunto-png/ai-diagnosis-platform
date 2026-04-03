@@ -9,18 +9,18 @@ const { diagnosisType, variant = "bottom" } = Astro.props;
 const config = {
   "diy-repair": {
     href: "/diy-repair/",
-    icon: "🔧",
-    label: "AI補修診断ツール",
-    description: "写真を撮るだけで、AIが補修方法と必要な道具を提案します。",
-    cta: "無料で補修診断する →",
+    icon: "修理",
+    label: "AI修理診断ツール",
+    description: "画像を1枚送るだけで、DIYでの対処方針と必要な道具を整理できます。",
+    cta: "無料で修理診断する",
     gaEvent: "cta_click_diy_repair",
   },
   "kabi-diagnosis": {
     href: "/kabi-diagnosis/",
-    icon: "🔬",
+    icon: "カビ",
     label: "AIカビ診断ツール",
-    description: "写真を撮るだけで、AIがカビの種類と適切な対処法を診断します。",
-    cta: "無料でカビ診断する →",
+    description: "画像からカビの状態と対処の方向性をすばやく整理できます。",
+    cta: "無料でカビ診断する",
     gaEvent: "cta_click_kabi_diagnosis",
   },
 } as const;
@@ -41,8 +41,8 @@ const c = config[diagnosisType];
   </div>
 </div>
 
-<script>
-  document.querySelectorAll<HTMLElement>(".diagnosis-cta").forEach((el) => {
+<script is:inline>
+  document.querySelectorAll(".diagnosis-cta").forEach((el) => {
     const event = el.dataset.gaEvent;
     if (!event) return;
     el.querySelector("a")?.addEventListener("click", () => {
@@ -60,7 +60,6 @@ const c = config[diagnosisType];
   overflow: hidden;
 }
 
-/* ── Top variant: subtle ── */
 .diagnosis-cta--top {
   background: var(--primary-light);
   border: 1.5px solid var(--primary-mid);
@@ -75,7 +74,8 @@ const c = config[diagnosisType];
 }
 
 .diagnosis-cta--top .diagnosis-cta__icon {
-  font-size: 1.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
@@ -114,7 +114,6 @@ const c = config[diagnosisType];
   background: var(--primary-hover);
 }
 
-/* ── Bottom variant: prominent ── */
 .diagnosis-cta--bottom {
   background: linear-gradient(135deg, var(--primary) 0%, #ff7c4d 100%);
   box-shadow: var(--shadow-primary);
@@ -129,7 +128,8 @@ const c = config[diagnosisType];
 }
 
 .diagnosis-cta--bottom .diagnosis-cta__icon {
-  font-size: 2.25rem;
+  font-size: 1.35rem;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
@@ -162,7 +162,7 @@ const c = config[diagnosisType];
   white-space: nowrap;
   transition: opacity 0.15s;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
 }
 
 .diagnosis-cta--bottom .diagnosis-cta__btn:hover {

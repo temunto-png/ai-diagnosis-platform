@@ -17,7 +17,7 @@ function createDeps(overrides: Partial<UploadDependencies> = {}): UploadDependen
       setItem: vi.fn(),
       removeItem: vi.fn(),
     },
-    hashFile: vi.fn(async () => "a".repeat(64)),
+    hashBase64: vi.fn(async () => "a".repeat(64)),
     resizeImage: vi.fn(async () => "base64-image"),
     ...overrides,
   };
@@ -53,7 +53,7 @@ describe("getOrFetchDiagnosis", () => {
       },
     });
 
-    const result = await getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", {}, deps);
+    const result = await getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps);
 
     expect(result).toEqual({ damage_type: "scratch" });
     expect(deps.fetchImpl).not.toHaveBeenCalled();
@@ -69,11 +69,36 @@ describe("getOrFetchDiagnosis", () => {
       },
     });
 
-    const result = await getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", {}, deps);
+    const result = await getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps);
 
     expect(result).toEqual({ damage_type: "fresh" });
     expect(deps.storage.removeItem).toHaveBeenCalled();
     expect(deps.storage.setItem).toHaveBeenCalled();
+  });
+
+  it("preserves monetization data returned by the API", async () => {
+    const deps = createDeps({
+      fetchImpl: vi.fn(async () =>
+        Response.json({
+          damage_type: "fresh",
+          monetization: {
+            type: "affiliate",
+            amazon_url: "https://example.com/amazon",
+            rakuten_url: "https://example.com/rakuten",
+            cpa_url: null,
+          },
+        })
+      ),
+    });
+
+    const result = await getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps);
+
+    expect(result.monetization).toEqual({
+      type: "affiliate",
+      amazon_url: "https://example.com/amazon",
+      rakuten_url: "https://example.com/rakuten",
+      cpa_url: null,
+    });
   });
 
   it("throws a user-facing message when the API returns a JSON error", async () => {
@@ -81,8 +106,28 @@ describe("getOrFetchDiagnosis", () => {
       fetchImpl: vi.fn(async () => Response.json({ error: "too many requests" }, { status: 429 })),
     });
 
-    await expect(getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", {}, deps)).rejects.toThrow(
+    await expect(getOrFetchDiagnosis(createFile("image/jpeg", 1024), "app", "v2:test", {}, deps)).rejects.toThrow(
       "too many requests"
+    );
+  });
+
+  it("passes an abort signal to fetch for cancellation", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ damage_type: "fresh" }));
+    const deps = createDeps({ fetchImpl });
+    const controller = new AbortController();
+
+    await getOrFetchDiagnosis(
+      createFile("image/jpeg", 1024),
+      "app",
+      "v2:test",
+      {},
+      deps,
+      controller.signal
+    );
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/app/analyze",
+      expect.objectContaining({ signal: controller.signal })
     );
   });
 });

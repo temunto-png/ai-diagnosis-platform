@@ -5,8 +5,8 @@ describe("getConfig", () => {
   it("returns config for known appId", () => {
     const config = getConfig("diy-repair");
     expect(config).not.toBeNull();
-    expect(config?.name).toBe("DIY補修診断");
-    expect(config?.prompt).toContain("DIY補修");
+    expect(config?.name).toBe("DIY修理診断");
+    expect(config?.prompt).toContain("DIY修理");
     expect(config?.daily_limit).toBeGreaterThan(0);
   });
 

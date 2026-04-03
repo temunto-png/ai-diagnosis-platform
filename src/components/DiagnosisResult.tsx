@@ -50,7 +50,7 @@ export default function DiagnosisResult({ data }: Props) {
           )}
           {badge && (
             <div className="result-field">
-              <div className="result-field-label">深刻度</div>
+              <div className="result-field-label">状態レベル</div>
               <span className={`badge ${badge.cls}`}>{badge.label}</span>
             </div>
           )}
@@ -79,7 +79,7 @@ export default function DiagnosisResult({ data }: Props) {
 
         {products && products.length > 0 && (
           <div>
-            <div className="result-products-heading">おすすめの対策アイテム</div>
+            <div className="result-products-heading">あわせて検討したいアイテム</div>
             <div className="product-items">
               {products.map((product) => (
                 <div

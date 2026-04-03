@@ -1,5 +1,6 @@
 ---
 import SchemaOrg from "../components/SchemaOrg.astro";
+import { DEFAULT_SITE_DESCRIPTION, SITE_NAME } from "../lib/site";
 
 interface Props {
   title: string;
@@ -7,11 +8,7 @@ interface Props {
   ogImage?: string;
 }
 
-const {
-  title,
-  description = "写真を 1 枚アップするだけで、傷やカビなどの状態を AI がすばやく診断するサービスです。",
-  ogImage = "/og/default.png",
-} = Astro.props;
+const { title, description = DEFAULT_SITE_DESCRIPTION, ogImage = "/og/default.png" } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const adsenseId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
@@ -31,9 +28,9 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
     <meta property="og:description" content={description} />
     <meta property="og:image" content={new URL(ogImage, Astro.site).toString()} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="さつてい" />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="author" content="さつてい" />
+    <meta name="author" content={SITE_NAME} />
 
     {!Astro.slots.has("head") && <SchemaOrg type="website" />}
     <slot name="head" />
@@ -48,13 +45,20 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
     {adsenseId && <meta name="google-adsense-account" content={adsenseId} />}
     {adsenseId && (
       <script
+        is:inline
         async
         src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
         crossorigin="anonymous"
       />
     )}
 
-    {gaId && <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>}
+    {gaId && (
+      <script
+        is:inline
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+      ></script>
+    )}
     {gaId && (
       <script is:inline define:vars={{ gaId }}>
         window.dataLayer = window.dataLayer || [];
@@ -68,7 +72,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
     <header class="site-header">
       <div class="container hstack">
         <a href="/" class="logo">
-          <span class="logo-icon">📸</span>
+          <span class="logo-icon">診</span>
           さつ<span class="logo-accent">てい</span>
         </a>
         <nav class="main-nav">
@@ -84,16 +88,18 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
 
     <footer class="site-footer">
       <div class="container">
-        <p class="footer-logo">📸 さつ<span class="logo-accent">てい</span></p>
-        <p class="footer-tagline">写真を 1 枚アップするだけで状態を見える化する AI 診断ツール</p>
+        <p class="footer-logo">診 さつ<span class="logo-accent">てい</span></p>
+        <p class="footer-tagline">
+          画像を1枚アップロードするだけで、住まいの状態を見える化する AI 診断ツール
+        </p>
         <p class="affiliate-notice">
-          当サイトにはアフィリエイトリンクが含まれる場合があります。商品購入やサービス申込が発生した場合、運営者に報酬が支払われることがあります。
+          本サイトではアフィリエイトリンクを利用する場合があります。掲載情報は調査時点の内容であり、購入や依頼の前に各提供元の最新情報をご確認ください。
         </p>
         <nav class="footer-nav">
           <a href="/privacy/">プライバシーポリシー</a>
           <a href="/terms/">利用規約</a>
           <a href="/contact/">お問い合わせ</a>
-          <a href="/about/">運営情報</a>
+          <a href="/about/">運営者情報</a>
         </nav>
       </div>
     </footer>
@@ -256,7 +262,7 @@ button { cursor: pointer; font-family: inherit; }
 
 .tool-page { padding: clamp(2rem, 5vw, 3.5rem) var(--px) clamp(3rem, 7vw, 5rem); max-width: 640px; margin-inline: auto; }
 .tool-header { margin-bottom: 1.75rem; }
-.tool-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.tool-icon { font-size: 2rem; display: block; margin-bottom: 0.75rem; font-weight: 700; }
 .tool-title {
   font-family: var(--font-display);
   font-weight: 900;
@@ -296,7 +302,7 @@ button { cursor: pointer; font-family: inherit; }
   justify-content: center;
 }
 .upload-area:hover, .upload-area.drag-over { border-color: var(--primary); background: var(--primary-light); }
-.upload-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; line-height: 1; }
+.upload-icon { font-size: 1rem; font-weight: 700; display: block; margin-bottom: 0.75rem; line-height: 1; }
 .upload-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--text); margin-bottom: 0.3rem; }
 .upload-hint { font-size: 0.8125rem; color: var(--text-muted); }
 
@@ -494,7 +500,7 @@ button { cursor: pointer; font-family: inherit; }
   box-shadow: var(--shadow-primary);
 }
 .affiliate-btn-cpa:hover { background: var(--primary-hover); box-shadow: 0 6px 22px rgba(255,94,42,0.35); }
-.affiliate-btn-icon { font-size: 1.375rem; flex-shrink: 0; }
+.affiliate-btn-icon { font-size: 1.2rem; flex-shrink: 0; }
 .affiliate-btn-label { font-size: 0.7rem; font-weight: 400; opacity: 0.7; display: block; }
 .affiliate-disclosure { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.75rem; text-align: center; }
 

@@ -10,12 +10,14 @@ const articles = (await getCollection("guide")).sort(
 ---
 
 <Base
-  title="DIY補修・日用品ガイド | 撮偵"
-  description="壁紙補修・カビ対策・タイヤチェックなどDIY・日用品の使い方ガイド記事一覧"
+  title="DIY修理・住まいメンテナンスガイド | さつてい"
+  description="DIY修理やカビ対策に役立つガイド記事をまとめています。"
 >
   <div class="page-header container">
-    <h1 class="page-title">📚 使い方ガイド</h1>
-    <p class="page-desc">補修材の選び方・カビ対策など、DIYに役立つ記事を掲載しています。</p>
+    <h1 class="page-title">使い方ガイド</h1>
+    <p class="page-desc">
+      DIY修理の基本やカビ対策の考え方など、診断ツールとあわせて役立つ記事をまとめています。
+    </p>
   </div>
 
   <div class="container" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
@@ -32,3 +34,40 @@ const articles = (await getCollection("guide")).sort(
     </div>
   </div>
 </Base>
+
+<style>
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.guide-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.guide-card-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.guide-card-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.guide-card-date {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+</style>

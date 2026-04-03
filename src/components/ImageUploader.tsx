@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { DiagnosisData } from "../lib/types";
+import { normalizeDiagnosisData, type DiagnosisData } from "../lib/types";
 import { buildClientCacheKey } from "../lib/diagnosis-service";
 
 const ALLOWED_FILE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -15,12 +15,13 @@ type DiagnosisState =
 export type UploadDependencies = {
   fetchImpl: typeof fetch;
   storage: Pick<Storage, "getItem" | "setItem" | "removeItem">;
-  hashFile: (file: File) => Promise<string>;
+  hashBase64: (value: string) => Promise<string>;
   resizeImage: (file: File) => Promise<string>;
 };
 
 interface Props {
   appId: string;
+  cacheVersion: string;
   context?: Record<string, string>;
   onResult: (data: DiagnosisData) => void;
   onReset?: () => void;
@@ -58,8 +59,8 @@ export async function resizeImage(file: File): Promise<string> {
   }
 }
 
-export async function hashFile(file: File): Promise<string> {
-  const buffer = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+export async function hashBase64(value: string): Promise<string> {
+  const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
@@ -69,7 +70,7 @@ function getDefaultUploadDependencies(): UploadDependencies {
   return {
     fetchImpl: fetch,
     storage: sessionStorage,
-    hashFile,
+    hashBase64,
     resizeImage,
   };
 }
@@ -77,12 +78,14 @@ function getDefaultUploadDependencies(): UploadDependencies {
 export async function getOrFetchDiagnosis(
   file: File,
   appId: string,
+  cacheVersion: string,
   context: Record<string, string>,
-  deps: UploadDependencies = getDefaultUploadDependencies()
+  deps: UploadDependencies = getDefaultUploadDependencies(),
+  signal?: AbortSignal
 ): Promise<DiagnosisData> {
-  const imageHash = await deps.hashFile(file);
   const image = await deps.resizeImage(file);
-  const cacheKey = buildClientCacheKey(appId, imageHash, context);
+  const imageHash = await deps.hashBase64(image);
+  const cacheKey = buildClientCacheKey(appId, imageHash, context, cacheVersion);
 
   const cached = deps.storage.getItem(cacheKey);
   if (cached) {
@@ -98,6 +101,7 @@ export async function getOrFetchDiagnosis(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image, imageHash, context }),
+    signal,
   });
 
   if (!response.ok) {
@@ -110,27 +114,39 @@ export async function getOrFetchDiagnosis(
     throw new Error(`診断に失敗しました。サーバーエラー (${response.status})`);
   }
 
-  const data = (await response.json()) as DiagnosisData;
+  const data = normalizeDiagnosisData(await response.json());
   deps.storage.setItem(cacheKey, JSON.stringify({ data, ts: Date.now() }));
   return data;
 }
 
-export default function ImageUploader({ appId, context = {}, onResult, onReset, hasResult }: Props) {
+export default function ImageUploader({
+  appId,
+  cacheVersion,
+  context = {},
+  onResult,
+  onReset,
+  hasResult,
+}: Props) {
   const [state, setState] = useState<DiagnosisState>({ status: "idle" });
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const requestSequenceRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
+      abortControllerRef.current?.abort();
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
   const handleFile = async (file: File) => {
     const requestSequence = ++requestSequenceRef.current;
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
     setState({ status: "loading" });
 
     try {
@@ -139,13 +155,21 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
         return URL.createObjectURL(file);
       });
 
-      const data = await getOrFetchDiagnosis(file, appId, context);
+      const data = await getOrFetchDiagnosis(
+        file,
+        appId,
+        cacheVersion,
+        context,
+        undefined,
+        abortController.signal
+      );
       if (requestSequence !== requestSequenceRef.current) return;
 
       setState({ status: "done", data });
       onResult(data);
     } catch (error) {
       if (requestSequence !== requestSequenceRef.current) return;
+      if (error instanceof Error && error.name === "AbortError") return;
 
       setState({
         status: "error",
@@ -180,6 +204,7 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
       <button
         className="rediagnose-btn"
         onClick={() => {
+          abortControllerRef.current?.abort();
           requestSequenceRef.current += 1;
           setState({ status: "idle" });
           setPreview((currentPreview) => {
@@ -222,9 +247,11 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
           />
         ) : (
           <>
-            <span className="upload-icon">📷</span>
-            <p className="upload-title">写真をアップロードして診断を開始</p>
-            <p className="upload-hint">ドラッグ&ドロップ、またはタップして画像を選択してください</p>
+            <span className="upload-icon">画像</span>
+            <p className="upload-title">画像をアップロードして診断を始める</p>
+            <p className="upload-hint">
+              ドラッグ&ドロップ、またはボタンから画像を選択してください
+            </p>
           </>
         )}
       </div>
@@ -247,7 +274,7 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
               galleryRef.current?.click();
             }}
           >
-            写真を選択
+            画像を選ぶ
           </button>
         </div>
       )}
@@ -274,6 +301,7 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
           <button
             className="error-retry"
             onClick={() => {
+              abortControllerRef.current?.abort();
               requestSequenceRef.current += 1;
               setState({ status: "idle" });
               setPreview((currentPreview) => {

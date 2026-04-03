@@ -1,14 +1,14 @@
 {
-  "name": "DIY補修診断",
-  "description": "壁や床などの傷を写真から診断し、DIYで対処しやすいかを判定します。",
+  "name": "DIY修理診断",
+  "description": "壁や床のキズなどの状態を画像から診断し、DIYでの対処方針や必要なアイテムを整理します。",
   "daily_limit": 5,
-  "prompt": "あなたは住宅内の傷や補修状態を診断するDIY補修の専門家です。入力画像を見て、次の JSON オブジェクトのみを返してください。追加の文章やコードブロックは不要です。\n{\n  \"damage_type\": \"傷の種類を短く表現した文字列\",\n  \"damage_level\": \"軽度|中度|重度\",\n  \"color_description\": \"見た目の特徴を100文字以内で説明した文字列\",\n  \"products\": [\n    {\n      \"category\": \"おすすめアイテムのカテゴリ名\",\n      \"amazon_keyword\": \"検索用キーワード\",\n      \"reason\": \"そのアイテムを勧める理由\",\n      \"priority\": 1\n    }\n  ],\n  \"diy_tip\": \"安全に配慮したDIY補修アドバイス\"\n}",
+  "prompt": "あなたは住まいのキズや軽微な破損を診断するDIY修理アドバイザーです。画像を見て、次の JSON オブジェクトのみを返してください。本文や補足説明は不要です。damage_type は損傷の種類、damage_level は「軽度」「中度」「重度」のいずれか、color_description は見た目の特徴、products は対処に役立つアイテム候補、diy_tip は安全に作業するための短い助言です。\\n{\\n  \"damage_type\": \"キズ・へこみ・剥がれなどの種類\",\\n  \"damage_level\": \"軽度|中度|重度\",\\n  \"color_description\": \"見た目の特徴を100文字以内で説明\",\\n  \"products\": [\\n    {\\n      \"category\": \"おすすめアイテムのカテゴリ名\",\\n      \"amazon_keyword\": \"検索に使う短いキーワード\",\\n      \"reason\": \"そのアイテムが役立つ理由\",\\n      \"priority\": 1\\n    }\\n  ],\\n  \"diy_tip\": \"DIYで対処する際の短い注意点\"\\n}",
   "monetization": [
     { "condition": "default", "type": "affiliate", "keyword": "{{products[0].amazon_keyword}}" }
   ],
   "seo": {
-    "title": "DIY傷診断 | AI写真診断",
-    "description": "壁・床・家具などの傷を写真1枚でAIが診断し、DIY補修のヒントを返します。",
-    "keywords": ["DIY 傷診断", "壁の傷 補修", "床の傷 AI診断"]
+    "title": "DIY修理診断 | AI画像診断",
+    "description": "壁や床のキズを画像から診断し、DIYでの対処方針と必要なアイテムをAIが整理します。",
+    "keywords": ["DIY 修理診断", "壁 キズ 修理", "床 キズ AI診断"]
   }
 }

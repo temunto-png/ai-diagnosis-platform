@@ -7,39 +7,44 @@ import { listApps } from "../configs/index";
 const apps = listApps();
 
 const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }> = {
-  "diy-repair":     { icon: "🔨", iconBg: "icon-bg-orange", tagline: "壁・床・木材の傷や汚れ" },
-  "kabi-diagnosis": { icon: "🔬", iconBg: "icon-bg-green",  tagline: "壁・浴室・押入れのカビ" },
+  "diy-repair": {
+    icon: "修理",
+    iconBg: "icon-bg-orange",
+    tagline: "壁や床のキズをチェック",
+  },
+  "kabi-diagnosis": {
+    icon: "カビ",
+    iconBg: "icon-bg-green",
+    tagline: "住まいのカビ状態を整理",
+  },
 };
 ---
 
 <Base
-  title="撮偵 — 写真1枚でAIが解決策を診断"
-  description="写真を撮るだけでAIが診断・おすすめ商品を提案。壁キズ・カビ・タイヤなど無料で使えるAI診断ツール集"
+  title="さつてい | 画像1枚で住まいの状態をAI診断"
+  description="画像を送るだけで、修理・キズ・カビなどの状態をAIが整理する住まい向け診断ツールです。"
 >
-
-  <!-- ヒーロー -->
   <section class="hero">
-    <div class="hero-eyebrow">🤖 AI画像診断ツール</div>
+    <div class="hero-eyebrow">AI画像診断ツール</div>
     <h1 class="hero-title">
-      写真<em>1枚</em>で<br />AIが解決策を診断
+      画像<em>1枚</em>で<br />住まいの状態をAI診断
     </h1>
     <p class="hero-desc">
-      壁・床のキズ、カビ、タイヤ…<br />
-      気になる場所を撮るだけ。登録不要・無料で使えます。
+      壁のキズ、床のへこみ、カビなど。<br />
+      気になる場所を撮るだけで、診断結果と次の一手を整理できます。
     </p>
     <div class="hero-badges">
-      <span class="pill-badge pill-orange">✅ 登録不要・完全無料</span>
-      <span class="pill-badge pill-orange">⚡ 数秒で診断完了</span>
+      <span class="pill-badge pill-orange">無料で使える</span>
+      <span class="pill-badge pill-orange">数秒で診断開始</span>
     </div>
   </section>
 
-  <!-- 診断ツール一覧 -->
   <section class="apps-section">
     <div class="container">
       <p class="section-eyebrow">診断ツール一覧</p>
       <div class="apps-grid">
         {apps.map((app) => {
-          const meta = appMeta[app.id] ?? { icon: "🔍", iconBg: "icon-bg-blue", tagline: "" };
+          const meta = appMeta[app.id] ?? { icon: "診断", iconBg: "icon-bg-blue", tagline: "" };
           return (
             <a href={`/${app.id}/`} class="app-card">
               <div class={`app-card-icon-wrap ${meta.iconBg}`}>{meta.icon}</div>
@@ -58,15 +63,14 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
     </div>
   </section>
 
-  <!-- 使い方 -->
   <section class="steps-section">
     <div class="container">
-      <p class="section-eyebrow">使い方 — 3ステップ</p>
+      <p class="section-eyebrow">使い方 3ステップ</p>
       <div class="steps-grid">
         {[
-          { step: "1", icon: "📷", title: "写真を撮る",   desc: "スマホで気になる場所を撮影するだけ" },
-          { step: "2", icon: "🤖", title: "AIが解析",     desc: "数秒でAIが画像を判定・診断します" },
-          { step: "3", icon: "🛒", title: "商品を確認",   desc: "状況に合ったおすすめ商品を提案" },
+          { step: "1", icon: "撮影", title: "画像を用意", desc: "スマホで気になる場所を撮影するだけです。" },
+          { step: "2", icon: "解析", title: "AIが診断", desc: "画像をもとに状態や深刻度を整理します。" },
+          { step: "3", icon: "対策", title: "次の一手を確認", desc: "対処の方向性や参考アイテムを確認できます。" },
         ].map(({ step, icon, title, desc }) => (
           <div class="step-card">
             <div class="step-num">{step}</div>
@@ -79,18 +83,181 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
     </div>
   </section>
 
-  <!-- ガイドへの誘導 -->
   <section class="guide-teaser">
     <div class="container">
       <p class="section-eyebrow" style="color: var(--green);">使い方ガイド</p>
-      <h2 class="guide-teaser-title">DIY補修・カビ対策の詳しい方法</h2>
+      <h2 class="guide-teaser-title">DIY修理やカビ対策の詳しい記事も公開中</h2>
       <p class="guide-teaser-desc">
-        補修材の選び方・カビの除去手順など、プロが解説するガイド記事を掲載しています。
+        診断だけでなく、対処方法や注意点をまとめたガイド記事も読めます。
       </p>
       <a href="/guide/" class="btn btn-outline" style="color:var(--green);border-color:var(--green);">
-        📚 ガイドを読む →
+        ガイドを読む →
       </a>
     </div>
   </section>
-
 </Base>
+
+<style>
+.hero {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) var(--px) clamp(2.5rem, 6vw, 4rem);
+}
+.hero-eyebrow,
+.section-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 7vw, 4.2rem);
+  line-height: 1.08;
+  margin-bottom: 1rem;
+}
+.hero-title em {
+  color: var(--primary);
+  font-style: normal;
+}
+.hero-desc {
+  color: var(--text-muted);
+  font-size: 1rem;
+  max-width: 42rem;
+}
+.hero-badges {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.pill-orange {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-mid);
+}
+.apps-section,
+.steps-section,
+.guide-teaser {
+  padding: 0 var(--px) clamp(3rem, 6vw, 4.5rem);
+}
+.apps-grid,
+.steps-grid {
+  display: grid;
+  gap: 1rem;
+}
+.apps-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+.app-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.app-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-mid);
+  box-shadow: var(--shadow);
+}
+.app-card-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+  font-weight: 800;
+}
+.icon-bg-orange {
+  background: #fff2ec;
+  color: #d96437;
+}
+.icon-bg-green {
+  background: #ecfdf3;
+  color: #15803d;
+}
+.icon-bg-blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.app-card-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+.app-card-desc {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.app-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--primary);
+  font-weight: 700;
+}
+.steps-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.step-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: linear-gradient(180deg, #fff, #fbfcfe);
+}
+.step-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+.step-icon {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.step-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+.step-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.guide-teaser .container {
+  background: linear-gradient(135deg, #f5fff7, #effcf4);
+  border: 1px solid #d8f3df;
+  border-radius: 24px;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+.guide-teaser-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  margin-bottom: 0.75rem;
+}
+.guide-teaser-desc {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.btn-outline {
+  border: 1.5px solid currentColor;
+  background: transparent;
+}
+</style>

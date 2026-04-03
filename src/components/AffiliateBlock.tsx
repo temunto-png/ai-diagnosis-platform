@@ -43,11 +43,18 @@ export default function AffiliateBlock({ monetization, appId, severity }: Props)
               target="_blank"
               rel="noopener noreferrer"
               className="affiliate-btn affiliate-btn-amazon"
-              onClick={() => sendAffiliateClick({ appId, destination: "amazon", monetizationType: monetization.type, severity })}
+              onClick={() =>
+                sendAffiliateClick({
+                  appId,
+                  destination: "amazon",
+                  monetizationType: monetization.type,
+                  severity,
+                })
+              }
             >
-              <span className="affiliate-btn-icon">🛒</span>
+              <span className="affiliate-btn-icon">A</span>
               <span>
-                <span className="affiliate-btn-label">最短で探す</span>
+                <span className="affiliate-btn-label">最短で確認</span>
                 Amazon で見る
               </span>
             </a>
@@ -58,18 +65,25 @@ export default function AffiliateBlock({ monetization, appId, severity }: Props)
               target="_blank"
               rel="noopener noreferrer"
               className="affiliate-btn affiliate-btn-rakuten"
-              onClick={() => sendAffiliateClick({ appId, destination: "rakuten", monetizationType: monetization.type, severity })}
+              onClick={() =>
+                sendAffiliateClick({
+                  appId,
+                  destination: "rakuten",
+                  monetizationType: monetization.type,
+                  severity,
+                })
+              }
             >
-              <span className="affiliate-btn-icon">🧺</span>
+              <span className="affiliate-btn-icon">R</span>
               <span>
-                <span className="affiliate-btn-label">比較しながら探す</span>
+                <span className="affiliate-btn-label">比較しながら確認</span>
                 楽天市場で見る
               </span>
             </a>
           )}
         </div>
         <p className="affiliate-disclosure">
-          当サイトはアフィリエイトリンクを利用しています。購入や申込が発生した場合、運営者に報酬が支払われることがあります。
+          本サイトではアフィリエイトリンクを利用する場合があります。掲載内容は調査時点の情報であり、購入前に各販売ページをご確認ください。
         </p>
       </div>
     );
@@ -88,7 +102,14 @@ export default function AffiliateBlock({ monetization, appId, severity }: Props)
             target="_blank"
             rel="noopener noreferrer"
             className="affiliate-btn affiliate-btn-cpa"
-            onClick={() => sendAffiliateClick({ appId, destination: "cpa", monetizationType: monetization.type, severity })}
+            onClick={() =>
+              sendAffiliateClick({
+                appId,
+                destination: "cpa",
+                monetizationType: monetization.type,
+                severity,
+              })
+            }
           >
             専門サービスを見る
           </a>

@@ -6,6 +6,7 @@ import type { DiagnosisData } from "../lib/types";
 
 interface Props {
   appId: string;
+  cacheVersion: string;
   context?: Record<string, string>;
 }
 
@@ -28,7 +29,7 @@ function getDiagnosisCount(now = Date.now()): number {
   return BASE_COUNT + Math.max(0, elapsed) * DAILY_INCREMENT;
 }
 
-export default function DiagnosisApp({ appId, context = {} }: Props) {
+export default function DiagnosisApp({ appId, cacheVersion, context = {} }: Props) {
   const [result, setResult] = useState<DiagnosisData | null>(null);
   const diagnosisCount = getDiagnosisCount();
 
@@ -70,6 +71,7 @@ export default function DiagnosisApp({ appId, context = {} }: Props) {
 
       <ImageUploader
         appId={appId}
+        cacheVersion={cacheVersion}
         context={context}
         onResult={handleResult}
         onReset={handleReset}

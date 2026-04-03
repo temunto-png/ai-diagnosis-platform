@@ -8,7 +8,7 @@ describe("callClaude", () => {
 
   it("calls Claude API and returns parsed JSON from text content", async () => {
     const mockResponse = {
-      content: [{ type: "text", text: '{"damage_type": "壁紙破れ", "damage_level": "軽微"}' }],
+      content: [{ type: "text", text: '{"damage_type":"キズ","damage_level":"軽度"}' }],
     };
     vi.stubGlobal(
       "fetch",
@@ -19,8 +19,8 @@ describe("callClaude", () => {
       })
     );
 
-    const result = await callClaude("test-key", "base64img", "診断して");
-    expect(result).toEqual({ damage_type: "壁紙破れ", damage_level: "軽微" });
+    const result = await callClaude("test-key", "base64img", "診断してください");
+    expect(result).toEqual({ damage_type: "キズ", damage_level: "軽度" });
   });
 
   it("uses Haiku model", async () => {
@@ -31,7 +31,7 @@ describe("callClaude", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await callClaude("test-key", "base64img", "診断して");
+    await callClaude("test-key", "base64img", "診断してください");
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.model).toBe("claude-haiku-4-5-20251001");
@@ -45,18 +45,18 @@ describe("callClaude", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await callClaude("test-key", "base64img", "診断して");
+    await callClaude("test-key", "base64img", "診断してください");
 
     const headers = fetchMock.mock.calls[0][1].headers;
     expect(headers["anthropic-beta"]).toContain("prompt-caching");
   });
 
-  it("Claude が非JSONテキストを返した場合に Error を throw する", async () => {
+  it("throws when Claude returns a non-JSON text response", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: "text", text: "申し訳ありませんが、この画像は診断できません。" }],
+        content: [{ type: "text", text: "これはJSONではありません" }],
       }),
     });
     vi.stubGlobal("fetch", mockFetch);
@@ -64,8 +64,6 @@ describe("callClaude", () => {
     await expect(callClaude("test-key", "base64data", "診断してください")).rejects.toThrow(
       "Claude returned non-JSON response"
     );
-
-    vi.unstubAllGlobals();
   });
 
   it("throws meaningful error when Claude API returns non-JSON error response", async () => {
@@ -76,11 +74,13 @@ describe("callClaude", () => {
         status: 500,
         headers: { get: () => "text/html" },
         text: async () => "<html>Internal Server Error</html>",
-        json: async () => { throw new SyntaxError("Unexpected end of JSON input"); },
+        json: async () => {
+          throw new SyntaxError("Unexpected end of JSON input");
+        },
       })
     );
 
-    await expect(callClaude("test-key", "base64img", "診断して")).rejects.toThrow(
+    await expect(callClaude("test-key", "base64img", "診断してください")).rejects.toThrow(
       "Claude API error: 500"
     );
   });
@@ -96,7 +96,7 @@ describe("callClaude", () => {
       });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await callClaude("test-key", "base64img", "診断して");
+    const result = await callClaude("test-key", "base64img", "診断してください");
     expect(result).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   }, 10000);
