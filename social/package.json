@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "post": "tsx scripts/run.ts",
+    "check:calendar": "tsx scripts/check-calendar.ts",
     "test": "vitest run"
   },
   "dependencies": {

@@ -21,6 +21,10 @@ jobs:
         run: npm ci
         working-directory: social
 
+      - name: Verify calendar integrity
+        run: npm run check:calendar
+        working-directory: social
+
       - name: Run auto post
         run: npx tsx scripts/run.ts
         working-directory: social
