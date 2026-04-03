@@ -13,6 +13,7 @@ export type AppConfig = {
   description: string;
   daily_limit: number;
   prompt: string;
+  allowed_context_keys?: string[];
   monetization: MonetizationRule[];
   seo: {
     title: string;

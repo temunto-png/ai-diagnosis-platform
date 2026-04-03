@@ -19,6 +19,7 @@ type CloudflareEnv = {
   CLAUDE_DIAGNOSIS_MAX_TOKENS?: string;
   DIAGNOSIS_CACHE_TTL_SECONDS?: string;
   MAX_IMAGE_BASE64_LENGTH?: string;
+  EXPECTED_ORIGIN?: string;
 };
 
 declare namespace App {

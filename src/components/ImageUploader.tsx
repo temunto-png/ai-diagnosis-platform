@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { DiagnosisData } from "../lib/types";
+import { buildClientCacheKey } from "../lib/diagnosis-service";
 
 type DiagnosisState =
   | { status: "idle" }
@@ -28,19 +29,9 @@ async function resizeImage(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
 }
 
-async function buildCacheKey(
-  appId: string,
-  image: string,
-  context: Record<string, string>
-): Promise<string> {
-  const contextKey = JSON.stringify(
-    Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
-  );
-  const payload = JSON.stringify({ appId, image, context: contextKey });
-  const encoded = new TextEncoder().encode(payload);
-  const buf = await crypto.subtle.digest("SHA-256", encoded);
-  const hash = btoa(String.fromCharCode(...new Uint8Array(buf))).slice(0, 16);
-  return `result:${appId}:${hash}`;
+async function hashFile(file: File): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function getOrFetch(
@@ -48,8 +39,9 @@ async function getOrFetch(
   appId: string,
   context: Record<string, string>
 ): Promise<DiagnosisData> {
+  const imageHash = await hashFile(file);
   const image = await resizeImage(file);
-  const cacheKey = await buildCacheKey(appId, image, context);
+  const cacheKey = buildClientCacheKey(appId, imageHash, context);
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
@@ -64,16 +56,16 @@ async function getOrFetch(
   const res = await fetch(`/api/${appId}/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image, context }),
+    body: JSON.stringify({ image, imageHash, context }),
   });
 
   if (!res.ok) {
     const contentType = res.headers.get("content-type") ?? "";
     if (contentType.includes("application/json")) {
       const err = (await res.json()) as { error: string };
-      throw new Error(err.error ?? "診断に失敗しました");
+      throw new Error(err.error ?? "險ｺ譁ｭ縺ｫ螟ｱ謨励＠縺ｾ縺励◆");
     }
-    throw new Error(`診断サービスに接続できませんでした (${res.status})`);
+    throw new Error(`險ｺ譁ｭ繧ｵ繝ｼ繝薙せ縺ｫ謗･邯壹〒縺阪∪縺帙ｓ縺ｧ縺励◆ (${res.status})`);
   }
 
   const data = (await res.json()) as DiagnosisData;
@@ -86,7 +78,6 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // preview が変わるたびに古い ObjectURL を破棄
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview);
@@ -104,7 +95,7 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
       setState({ status: "done", data });
       onResult(data);
     } catch (e) {
-      setState({ status: "error", message: e instanceof Error ? e.message : "不明なエラーが発生しました" });
+      setState({ status: "error", message: e instanceof Error ? e.message : "荳肴・縺ｪ繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆" });
     }
   };
 
@@ -125,12 +116,14 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
     [appId, context]
   );
 
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
   const handleDragLeave = () => setIsDragging(false);
 
   const isLoading = state.status === "loading";
 
-  // 診断済み → コンパクトな「撮り直し」ボタンのみ
   if (hasResult) {
     return (
       <button
@@ -141,14 +134,13 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
           onReset?.();
         }}
       >
-        ↩ 別の写真で診断し直す
+        竊ｩ 蛻･縺ｮ蜀咏悄縺ｧ險ｺ譁ｭ縺礼峩縺・
       </button>
     );
   }
 
   return (
     <div>
-      {/* アップロードエリア */}
       <div
         className={`upload-area${isDragging ? " drag-over" : ""}`}
         onDrop={handleDrop}
@@ -158,44 +150,53 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
       >
         {isLoading && preview ? (
           <div className="preview-wrap" style={{ width: "100%", margin: 0 }}>
-            <img src={preview} alt="診断中の画像" className="preview-img" />
+            <img src={preview} alt="險ｺ譁ｭ荳ｭ縺ｮ逕ｻ蜒・" className="preview-img" />
             <div className="scan-overlay">
               <div className="scan-bar" />
               <div className="scan-label">
-                🔍 AI診断中<span className="dot-anim" />
+                剥 AI險ｺ譁ｭ荳ｭ<span className="dot-anim" />
               </div>
             </div>
           </div>
         ) : preview && state.status === "done" ? (
-          <img src={preview} alt="診断した画像" className="preview-img" style={{ borderRadius: "12px", width: "100%" }} />
+          <img
+            src={preview}
+            alt="險ｺ譁ｭ縺励◆逕ｻ蜒・"
+            className="preview-img"
+            style={{ borderRadius: "12px", width: "100%" }}
+          />
         ) : (
           <>
-            <span className="upload-icon">📷</span>
-            <p className="upload-title">ここに写真をドロップ</p>
-            <p className="upload-hint">またはボタンから選択 · ドラッグ&amp;ドロップも可</p>
+            <span className="upload-icon">胴</span>
+            <p className="upload-title">縺薙％縺ｫ蜀咏悄繧偵ラ繝ｭ繝・・</p>
+            <p className="upload-hint">縺ｾ縺溘・繝懊ち繝ｳ縺九ｉ驕ｸ謚・ﾂｷ 繝峨Λ繝・げ&amp;繝峨Ο繝・・繧ょ庄</p>
           </>
         )}
       </div>
 
-      {/* ボタン2つ */}
       {!isLoading && (
         <div className="upload-btns">
           <button
             className="btn btn-primary"
-            onClick={(e) => { e.stopPropagation(); cameraRef.current?.click(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              cameraRef.current?.click();
+            }}
           >
-            📷 カメラで撮影
+            胴 繧ｫ繝｡繝ｩ縺ｧ謦ｮ蠖ｱ
           </button>
           <button
             className="btn btn-ghost"
-            onClick={(e) => { e.stopPropagation(); galleryRef.current?.click(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              galleryRef.current?.click();
+            }}
           >
-            🖼️ 画像を選択
+            名・・逕ｻ蜒上ｒ驕ｸ謚・
           </button>
         </div>
       )}
 
-      {/* Hidden inputs */}
       <input
         ref={cameraRef}
         type="file"
@@ -212,12 +213,17 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
         style={{ display: "none" }}
       />
 
-      {/* エラー */}
       {state.status === "error" && (
         <div className="error-box">
-          <span>⚠️ {state.message}</span>
-          <button className="error-retry" onClick={() => { setState({ status: "idle" }); setPreview(null); }}>
-            もう一度試す
+          <span>笞・・{state.message}</span>
+          <button
+            className="error-retry"
+            onClick={() => {
+              setState({ status: "idle" });
+              setPreview(null);
+            }}
+          >
+            繧ゅ≧荳蠎ｦ隧ｦ縺・
           </button>
         </div>
       )}
