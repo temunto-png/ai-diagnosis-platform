@@ -2,6 +2,9 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { DiagnosisData } from "../lib/types";
 import { buildClientCacheKey } from "../lib/diagnosis-service";
 
+const ALLOWED_FILE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_UPLOAD_FILE_SIZE = 8 * 1024 * 1024;
+
 type DiagnosisState =
   | { status: "idle" }
   | { status: "loading" }
@@ -16,17 +19,33 @@ interface Props {
   hasResult?: boolean;
 }
 
+export function validateUploadFile(file: File): void {
+  if (!ALLOWED_FILE_TYPES.has(file.type)) {
+    throw new Error("JPEG/PNG/WebP形式の画像を選択してください");
+  }
+
+  if (file.size > MAX_UPLOAD_FILE_SIZE) {
+    throw new Error("画像サイズが大きすぎます。8MB以下の画像を選択してください");
+  }
+}
+
 async function resizeImage(file: File): Promise<string> {
+  validateUploadFile(file);
+
   const MAX = 800;
   const img = await createImageBitmap(file);
-  const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(img.width * ratio);
-  canvas.height = Math.round(img.height * ratio);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context unavailable");
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+  try {
+    const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * ratio);
+    canvas.height = Math.round(img.height * ratio);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas 2D context unavailable");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+  } finally {
+    img.close();
+  }
 }
 
 async function hashFile(file: File): Promise<string> {
@@ -88,9 +107,12 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
   const galleryRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    setPreview(URL.createObjectURL(file));
     setState({ status: "loading" });
     try {
+      setPreview((currentPreview) => {
+        if (currentPreview) URL.revokeObjectURL(currentPreview);
+        return URL.createObjectURL(file);
+      });
       const data = await getOrFetch(file, appId, context);
       setState({ status: "done", data });
       onResult(data);
@@ -130,7 +152,10 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
         className="rediagnose-btn"
         onClick={() => {
           setState({ status: "idle" });
-          setPreview(null);
+          setPreview((currentPreview) => {
+            if (currentPreview) URL.revokeObjectURL(currentPreview);
+            return null;
+          });
           onReset?.();
         }}
       >
@@ -220,7 +245,10 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
             className="error-retry"
             onClick={() => {
               setState({ status: "idle" });
-              setPreview(null);
+              setPreview((currentPreview) => {
+                if (currentPreview) URL.revokeObjectURL(currentPreview);
+                return null;
+              });
             }}
           >
             繧ゅ≧荳蠎ｦ隧ｦ縺・

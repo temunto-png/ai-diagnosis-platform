@@ -1,6 +1,7 @@
 import type { AppConfig } from "../configs/index";
 import { applyMonetization } from "./monetization";
 import { resolveMaxTokens } from "./claude";
+import { normalizeDiagnosisData } from "./types";
 
 const MAX_CONTEXT_KEYS = 10;
 const MAX_CONTEXT_VALUE_LEN = 100;
@@ -94,7 +95,7 @@ function deriveAllowedContextKeys(config: AppConfig): string[] {
 }
 
 function normalizeContextValue(value: string): string {
-  return JSON.stringify(value.slice(0, MAX_CONTEXT_VALUE_LEN));
+  return value.trim().slice(0, MAX_CONTEXT_VALUE_LEN);
 }
 
 export function sanitizeContext(raw: unknown, config: AppConfig): Record<string, string> {
@@ -110,7 +111,10 @@ export function sanitizeContext(raw: unknown, config: AppConfig): Record<string,
 }
 
 export function interpolatePrompt(template: string, context: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_match: string, key: string) => context[key] ?? "\"\"");
+  return template.replace(
+    /\{\{(\w+)\}\}/g,
+    (_match: string, key: string) => JSON.stringify(context[key] ?? "")
+  );
 }
 
 export async function buildServerCacheKey(
@@ -194,6 +198,20 @@ export async function persistCachedDiagnosis(
   await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: ttl });
 }
 
+export function resolveClientIp(request: Request): string | null {
+  const cfIp = request.headers.get("CF-Connecting-IP");
+  if (cfIp) return cfIp;
+
+  const realIp = request.headers.get("X-Real-IP");
+  if (realIp) return realIp;
+
+  const forwardedFor = request.headers.get("X-Forwarded-For");
+  if (!forwardedFor) return null;
+
+  const first = forwardedFor.split(",")[0]?.trim();
+  return first || null;
+}
+
 export async function runDiagnosis(
   input: AnalyzeInput,
   config: AppConfig,
@@ -202,7 +220,9 @@ export async function runDiagnosis(
 ): Promise<Record<string, unknown>> {
   const prompt = interpolatePrompt(config.prompt, input.context);
   const maxTokens = resolveMaxTokens(env.CLAUDE_DIAGNOSIS_MAX_TOKENS);
-  const diagnosisResult = await deps.callClaude(env.ANTHROPIC_API_KEY, input.image, prompt, 3, maxTokens);
+  const diagnosisResult = normalizeDiagnosisData(
+    await deps.callClaude(env.ANTHROPIC_API_KEY, input.image, prompt, 3, maxTokens)
+  );
 
   return applyMonetization(
     diagnosisResult,
