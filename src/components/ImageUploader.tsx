@@ -34,7 +34,10 @@ async function getOrFetch(
 ): Promise<Record<string, unknown>> {
   const buf = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
   const hash = btoa(String.fromCharCode(...new Uint8Array(buf))).slice(0, 16);
-  const cacheKey = `result:${appId}:${hash}`;
+  const contextKey = JSON.stringify(
+    Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
+  );
+  const cacheKey = `result:${appId}:${hash}:${contextKey}`;
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
