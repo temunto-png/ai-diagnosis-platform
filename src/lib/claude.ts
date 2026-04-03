@@ -1,10 +1,21 @@
 const MODEL = "claude-haiku-4-5-20251001";
 
+const DEFAULT_MAX_TOKENS = 500;
+const MIN_MAX_TOKENS = 200;
+const MAX_MAX_TOKENS = 2048;
+
+export function resolveMaxTokens(raw?: string): number {
+  const parsed = parseInt(raw ?? "", 10);
+  if (isNaN(parsed)) return DEFAULT_MAX_TOKENS;
+  return Math.min(MAX_MAX_TOKENS, Math.max(MIN_MAX_TOKENS, parsed));
+}
+
 export async function callClaude(
   apiKey: string,
   imageBase64: string,
   prompt: string,
-  maxRetries = 3
+  maxRetries = 3,
+  maxTokens = DEFAULT_MAX_TOKENS
 ): Promise<Record<string, unknown>> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -17,7 +28,7 @@ export async function callClaude(
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1024,
+        max_tokens: maxTokens,
         system: [
           {
             type: "text",

@@ -1,9 +1,15 @@
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { getConfig } from "../../../configs/index";
-import { callClaude } from "../../../lib/claude";
+import { callClaude, resolveMaxTokens } from "../../../lib/claude";
 import { applyMonetization } from "../../../lib/monetization";
 import { isRateLimited } from "../../../lib/rate-limit";
+
+async function buildCacheKey(appId: string, image: string, context: Record<string, string>): Promise<string> {
+  const input = JSON.stringify({ appId, image, context: Object.fromEntries(Object.entries(context).sort()) });
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://satsu-tei.com",
@@ -47,14 +53,36 @@ export const POST: APIRoute = async ({ params, request }) => {
       return Response.json({ error: "image field is required" }, { status: 400, headers: corsHeaders });
     }
 
+    // 画像サイズ上限チェック（デフォルト ~1.5MB base64）
+    const maxImageLen = parseInt(env.MAX_IMAGE_BASE64_LENGTH ?? "1500000", 10);
+    if (image.length > maxImageLen) {
+      return Response.json({ error: "Image payload too large" }, { status: 413, headers: corsHeaders });
+    }
+
     const prompt = config.prompt.replace(
       /\{\{(\w+)\}\}/g,
       (_: string, key: string) => context[key] ?? ""
     );
 
+    // サーバーサイドキャッシュ確認（KV バインド時のみ）
+    let cacheKey: string | null = null;
+    if (env.DIAGNOSIS_CACHE_KV) {
+      try {
+        cacheKey = await buildCacheKey(appId, image, context);
+        const cached = await env.DIAGNOSIS_CACHE_KV.get(cacheKey);
+        if (cached) {
+          return Response.json(JSON.parse(cached), { headers: corsHeaders });
+        }
+      } catch {
+        // キャッシュ失敗時は通常フローへ
+      }
+    }
+
+    const maxTokens = resolveMaxTokens(env.CLAUDE_DIAGNOSIS_MAX_TOKENS);
+
     let diagnosisResult: Record<string, unknown>;
     try {
-      diagnosisResult = await callClaude(env.ANTHROPIC_API_KEY, image, prompt);
+      diagnosisResult = await callClaude(env.ANTHROPIC_API_KEY, image, prompt, 3, maxTokens);
     } catch {
       return Response.json(
         { error: "Diagnosis service temporarily unavailable" },
@@ -68,6 +96,12 @@ export const POST: APIRoute = async ({ params, request }) => {
       context,
       { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID }
     );
+
+    // キャッシュ書き込み（失敗しても続行）
+    if (env.DIAGNOSIS_CACHE_KV && cacheKey) {
+      const ttl = parseInt(env.DIAGNOSIS_CACHE_TTL_SECONDS ?? "86400", 10);
+      env.DIAGNOSIS_CACHE_KV.put(cacheKey, JSON.stringify(enriched), { expirationTtl: ttl }).catch(() => {});
+    }
 
     return Response.json(enriched, { headers: corsHeaders });
   } catch {

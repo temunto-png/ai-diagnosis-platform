@@ -2,6 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import AdUnit from "../../components/AdUnit.astro";
 import SchemaOrg from "../../components/SchemaOrg.astro";
+import DiagnosisCTA from "../../components/DiagnosisCTA.astro";
 import { getCollection, getEntry, render } from "astro:content";
 
 export const prerender = true;
@@ -16,6 +17,11 @@ const entry = await getEntry("guide", slug!);
 if (!entry) return Astro.redirect("/404");
 
 const { Content } = await render(entry);
+
+const kabiCategories = ["カビ対策", "水回りDIY"];
+const diagnosisType = kabiCategories.includes(entry.data.category)
+  ? "kabi-diagnosis"
+  : "diy-repair";
 ---
 
 <Base title={entry.data.title} description={entry.data.description}>
@@ -40,9 +46,13 @@ const { Content } = await render(entry);
       </p>
     </header>
 
+    <DiagnosisCTA diagnosisType={diagnosisType} variant="top" />
+
     <div class="article-body">
       <Content />
     </div>
+
+    <DiagnosisCTA diagnosisType={diagnosisType} variant="bottom" />
 
     <AdUnit />
 
