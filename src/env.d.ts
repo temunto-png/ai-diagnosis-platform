@@ -1,6 +1,10 @@
 /// <reference types="astro/client" />
 /// <reference types="@astrojs/cloudflare" />
 
+// Google Analytics 4 global declarations
+declare function gtag(...args: unknown[]): void;
+declare var dataLayer: unknown[];
+
 declare module "cloudflare:workers" {
   const env: CloudflareEnv;
   export { env };

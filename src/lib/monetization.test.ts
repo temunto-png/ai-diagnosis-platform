@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { applyMonetization } from "./monetization";
 import type { MonetizationRule } from "../configs/index";
+import type { MonetizationResult } from "./types";
 
 const ids = { amazonId: "testsite-22", rakutenId: "xxxx.xxxx" };
 
@@ -12,7 +13,7 @@ describe("applyMonetization", () => {
     const result = applyMonetization({ damage_type: "壁紙破れ" }, rules, {}, ids);
 
     expect(result.monetization).toBeDefined();
-    const m = result.monetization as Record<string, unknown>;
+    const m = result.monetization as MonetizationResult;
     expect(m.type).toBe("affiliate");
     const amazonUrl = m.amazon_url as string;
     expect(amazonUrl).toContain("amazon.co.jp");
@@ -28,7 +29,7 @@ describe("applyMonetization", () => {
       { condition: "default", type: "adsense" },
     ];
     const result = applyMonetization({ category: "粗大ゴミ" }, rules, {}, ids);
-    const m = result.monetization as Record<string, unknown>;
+    const m = result.monetization as MonetizationResult;
     expect(m.type).toBe("cpa");
     expect(m.cpa_url).toBe("https://example.jp/?s=gomi");
   });
@@ -39,7 +40,7 @@ describe("applyMonetization", () => {
       { condition: "default", type: "adsense" },
     ];
     const result = applyMonetization({ category: "燃えるゴミ" }, rules, {}, ids);
-    const m = result.monetization as Record<string, unknown>;
+    const m = result.monetization as MonetizationResult;
     expect(m.type).toBe("adsense");
   });
 
@@ -48,7 +49,7 @@ describe("applyMonetization", () => {
       { condition: "default", type: "affiliate", keyword: "{{amazon_keyword}}" },
     ];
     const result = applyMonetization({ amazon_keyword: "補修マーカー" }, rules, {}, ids);
-    const m = result.monetization as Record<string, unknown>;
+    const m = result.monetization as MonetizationResult;
     const amazonUrl = m.amazon_url as string;
     expect(decodeURIComponent(amazonUrl)).toContain("補修マーカー");
   });
@@ -66,9 +67,8 @@ describe("applyMonetization", () => {
       {},
       { amazonId: "test-22", rakutenId: "test-rakuten" }
     );
-    expect((result.monetization as { amazon_url: string }).amazon_url).toContain(
-      encodeURIComponent("壁紙補修テープ")
-    );
-    expect((result.monetization as { amazon_url: string }).amazon_url).not.toContain("%7B");
+    const m = result.monetization as MonetizationResult;
+    expect(m.amazon_url).toContain(encodeURIComponent("壁紙補修テープ"));
+    expect(m.amazon_url).not.toContain("%7B");
   });
 });

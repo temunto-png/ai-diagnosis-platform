@@ -58,9 +58,9 @@ const adsenseId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
 
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PRR2SJV8N0"></script>
-    <script>
+    <script is:inline>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag(){window.dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-PRR2SJV8N0');
     </script>

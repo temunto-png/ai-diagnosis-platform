@@ -1,12 +1,7 @@
-type MonetizationData = {
-  type: "affiliate" | "cpa" | "adsense";
-  amazon_url: string | null;
-  rakuten_url: string | null;
-  cpa_url: string | null;
-};
+import type { MonetizationResult } from "../lib/types";
 
 interface Props {
-  monetization: MonetizationData;
+  monetization: MonetizationResult;
   appId: string;
   severity: string;
 }

@@ -1,14 +1,9 @@
+import type { DiagnosisData, ProductItem } from "../lib/types";
+
 interface Props {
-  data: Record<string, unknown>;
+  data: DiagnosisData;
   appId: string;
 }
-
-type ProductItem = {
-  category: string;
-  amazon_keyword: string;
-  reason: string;
-  priority: number;
-};
 
 function severityBadge(value: string): { cls: string; label: string } {
   const v = value.toLowerCase();
@@ -24,11 +19,10 @@ function severityBadge(value: string): { cls: string; label: string } {
 export default function DiagnosisResult({ data }: Props) {
   if (!data || Object.keys(data).length === 0) return null;
 
-  const products = data.products as ProductItem[] | undefined;
-  const tip = (data.diy_tip ?? data.prevention_tip) as string | undefined;
-
-  const severityValue = (data.damage_level ?? data.severity) as string | undefined;
-  const badge = severityValue ? severityBadge(String(severityValue)) : null;
+  const products = data.products;
+  const tip = data.diy_tip ?? data.prevention_tip;
+  const severityValue = data.damage_level ?? data.severity;
+  const badge = severityValue ? severityBadge(severityValue) : null;
 
   return (
     <div className="result-card">
@@ -45,13 +39,13 @@ export default function DiagnosisResult({ data }: Props) {
           {!!data.damage_type && (
             <div className="result-field">
               <div className="result-field-label">損傷タイプ</div>
-              <div className="result-field-value">{String(data.damage_type)}</div>
+              <div className="result-field-value">{data.damage_type}</div>
             </div>
           )}
           {!!data.mold_type && (
             <div className="result-field">
               <div className="result-field-label">カビの種類</div>
-              <div className="result-field-value">{String(data.mold_type)}</div>
+              <div className="result-field-value">{data.mold_type}</div>
             </div>
           )}
           {badge && (
@@ -64,7 +58,7 @@ export default function DiagnosisResult({ data }: Props) {
             <div className="result-field">
               <div className="result-field-label">色の特徴</div>
               <div className="result-field-value" style={{ fontSize: "0.875rem" }}>
-                {String(data.color_description)}
+                {data.color_description}
               </div>
             </div>
           )}

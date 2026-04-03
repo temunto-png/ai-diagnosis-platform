@@ -1,15 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import type { DiagnosisData } from "../lib/types";
 
 type DiagnosisState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "done"; data: Record<string, unknown> }
+  | { status: "done"; data: DiagnosisData }
   | { status: "error"; message: string };
 
 interface Props {
   appId: string;
   context?: Record<string, string>;
-  onResult: (data: Record<string, unknown>) => void;
+  onResult: (data: DiagnosisData) => void;
   onReset?: () => void;
   hasResult?: boolean;
 }
@@ -31,15 +32,18 @@ async function getOrFetch(
   file: File,
   appId: string,
   context: Record<string, string>
-): Promise<Record<string, unknown>> {
+): Promise<DiagnosisData> {
   const buf = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
   const hash = btoa(String.fromCharCode(...new Uint8Array(buf))).slice(0, 16);
-  const cacheKey = `result:${appId}:${hash}`;
+  const contextKey = JSON.stringify(
+    Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
+  );
+  const cacheKey = `result:${appId}:${hash}:${contextKey}`;
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
     try {
-      const { data, ts } = JSON.parse(cached) as { data: Record<string, unknown>; ts: number };
+      const { data, ts } = JSON.parse(cached) as { data: DiagnosisData; ts: number };
       if (Date.now() - ts < 5 * 60 * 1000) return data;
     } catch {
       sessionStorage.removeItem(cacheKey);
@@ -62,7 +66,7 @@ async function getOrFetch(
     throw new Error(`診断サービスに接続できませんでした (${res.status})`);
   }
 
-  const data = (await res.json()) as Record<string, unknown>;
+  const data = (await res.json()) as DiagnosisData;
   sessionStorage.setItem(cacheKey, JSON.stringify({ data, ts: Date.now() }));
   return data;
 }
