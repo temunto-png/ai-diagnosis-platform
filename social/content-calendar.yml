@@ -6,6 +6,11 @@
 
 posts:
   # --- 2026年4月 ---
+  - date: "2026-04-03"
+    platforms: [x]
+    type: tips
+    slug: black-mold-removal
+
   - date: "2026-04-07"
     platforms: [x, instagram]
     type: article-promo
