@@ -1,43 +1,57 @@
-# Astro Starter Kit: Minimal
+# さつてい
+
+住まいのキズやカビを画像から診断する Astro + React + Cloudflare Workers ベースの Web アプリです。
+
+## セットアップ
 
 ```sh
-npm create astro@latest -- --template minimal
+npm install
+cp .env.example .dev.vars
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+必要な主な環境変数:
 
-## 🚀 Project Structure
+- `ANTHROPIC_API_KEY`
+- `AMAZON_ASSOCIATE_ID`
+- `RAKUTEN_AFFILIATE_ID`
+- `EXPECTED_ORIGIN`
+- `PUBLIC_GA_ID`
+- `PUBLIC_ADSENSE_CLIENT_ID`
 
-Inside of your Astro project, you'll see the following folders and files:
+## 開発コマンド
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+npm run dev
+npm test
+npm run check
+npm run build
+npm run check:text
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 技術スタック
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+- Astro 6
+- React 19
+- TypeScript
+- Cloudflare Workers / Durable Objects / KV
+- Vitest
 
-Any static assets, like images, can be placed in the `public/` directory.
+## ディレクトリ概要
 
-## 🧞 Commands
+- `src/pages`: ルーティングと静的ページ
+- `src/components`: UI コンポーネント
+- `src/lib`: 診断処理、Claude 連携、レート制限、型
+- `src/configs`: 診断アプリごとの設定
+- `src/content/guide`: ガイド記事
+- `src/worker.ts`: Cloudflare Workers エントリーポイント
 
-All commands are run from the root of the project, from a terminal:
+## デプロイ
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Cloudflare Workers 向けにビルドされます。`wrangler.toml` に Durable Object と KV の設定があります。
 
-## 👀 Want to learn more?
+## 品質ゲート
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- `npm test`: 単体テスト
+- `npm run check`: Astro / TypeScript 診断
+- `npm run build`: 本番ビルド確認
+- `npm run check:text`: 文字化け検知
