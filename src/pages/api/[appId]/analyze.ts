@@ -4,15 +4,10 @@ import { getConfig } from "../../../configs/index";
 import { callClaude } from "../../../lib/claude";
 import {
   buildCorsHeaders,
-  buildServerCacheKey,
-  parseAnalyzeBody,
+  executeDiagnosisRequest,
   persistCachedDiagnosis,
-  readCachedDiagnosis,
-  resolveClientIp,
   resolveAllowedOrigins,
   resolveCorsHeaders,
-  runDiagnosis,
-  validateImageSize,
   validateRequestOrigin,
   type DiagnosisDependencies,
   type DiagnosisEnvironment,
@@ -55,75 +50,16 @@ export function createAnalyzeRoute(
         return Response.json({ error: "App not found" }, { status: 404, headers: corsHeaders });
       }
 
-      const ip = resolveClientIp(request);
-      if (!ip) {
-        console.error(`[${requestId}] Unable to determine client IP appId=${appId}`);
-        return serviceUnavailable(requestId, corsHeaders);
-      }
-
-      try {
-        if (await deps.isRateLimited(ip, config.daily_limit, runtimeEnv.RATE_LIMITER ?? null)) {
-          return Response.json(
-            { error: "Rate limit exceeded. Please try again tomorrow." },
-            { status: 429, headers: corsHeaders }
-          );
+      const result = await executeDiagnosisRequest(request, appId, config, runtimeEnv, deps, requestId);
+      if (!result.ok) {
+        if (result.status === 503) {
+          return serviceUnavailable(requestId, corsHeaders);
         }
-      } catch (error) {
-        console.error(
-          `[${requestId}] Rate limit check failed appId=${appId}:`,
-          error instanceof Error ? error.message : error
-        );
-        return serviceUnavailable(requestId, corsHeaders);
+        return Response.json(result.payload, { status: result.status, headers: corsHeaders });
       }
 
-      let rawBody: { image?: unknown; imageHash?: unknown; context?: unknown };
-      try {
-        rawBody = await request.json();
-      } catch {
-        return Response.json({ error: "Invalid JSON body" }, { status: 400, headers: corsHeaders });
-      }
-
-      let input;
-      try {
-        input = parseAnalyzeBody(rawBody, config);
-      } catch (error) {
-        return Response.json(
-          { error: error instanceof Error ? error.message : "Invalid request body" },
-          { status: 400, headers: corsHeaders }
-        );
-      }
-
-      const imageSizeError = validateImageSize(input.image, runtimeEnv);
-      if (imageSizeError) {
-        return Response.json({ error: imageSizeError }, { status: 413, headers: corsHeaders });
-      }
-
-      let cacheKey: string | null = null;
-      if (runtimeEnv.DIAGNOSIS_CACHE_KV) {
-        try {
-          cacheKey = await buildServerCacheKey(appId, input.image, input.context);
-          const cached = await readCachedDiagnosis(runtimeEnv.DIAGNOSIS_CACHE_KV, cacheKey);
-          if (cached) {
-            return Response.json(cached, { headers: corsHeaders });
-          }
-        } catch {
-          cacheKey = null;
-        }
-      }
-
-      let enriched: Record<string, unknown>;
-      try {
-        enriched = await runDiagnosis(input, config, runtimeEnv, deps);
-      } catch (error) {
-        console.error(
-          `[${requestId}] Claude API error appId=${appId}:`,
-          error instanceof Error ? error.message : error
-        );
-        return serviceUnavailable(requestId, corsHeaders);
-      }
-
-      persistCachedDiagnosis(runtimeEnv.DIAGNOSIS_CACHE_KV, cacheKey, enriched, runtimeEnv).catch(() => {});
-      return Response.json(enriched, { headers: corsHeaders });
+      persistCachedDiagnosis(runtimeEnv.DIAGNOSIS_CACHE_KV, result.cacheKey, result.payload, runtimeEnv).catch(() => {});
+      return Response.json(result.payload, { headers: corsHeaders });
     } catch (error) {
       console.error(`[${requestId}] Unhandled error:`, error instanceof Error ? error.message : error);
       return Response.json(

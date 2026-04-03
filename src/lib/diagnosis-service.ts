@@ -44,6 +44,14 @@ export type DiagnosisDependencies = {
   isRateLimited: RateLimiter;
 };
 
+export type DiagnosisExecutionResult =
+  | { ok: true; payload: Record<string, unknown>; cacheKey: string | null }
+  | {
+      ok: false;
+      status: 400 | 413 | 429 | 503;
+      payload: { error: string; requestId?: string };
+    };
+
 export function resolveAllowedOrigins(env: DiagnosisEnvironment): string[] {
   const origins = [env.EXPECTED_ORIGIN ?? "https://satsu-tei.com", "http://localhost:4321"];
   return Array.from(new Set(origins));
@@ -119,12 +127,13 @@ export function interpolatePrompt(template: string, context: Record<string, stri
 
 export async function buildServerCacheKey(
   appId: string,
+  imageHash: string | null,
   image: string,
   context: Record<string, string>
 ): Promise<string> {
   const input = JSON.stringify({
     appId,
-    image,
+    image: imageHash ?? image,
     context: Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b))),
   });
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -165,6 +174,21 @@ export function validateImageSize(image: string, env: DiagnosisEnvironment): str
   return null;
 }
 
+export function validateContentLength(request: Request, env: DiagnosisEnvironment): string | null {
+  const rawContentLength = request.headers.get("Content-Length");
+  if (!rawContentLength) return null;
+
+  const contentLength = Number(rawContentLength);
+  if (!Number.isFinite(contentLength) || contentLength <= 0) return null;
+
+  const maxImageLen = parseInt(env.MAX_IMAGE_BASE64_LENGTH ?? "1500000", 10);
+  const maxJsonLen = Math.ceil(maxImageLen * 1.2);
+  if (contentLength > maxJsonLen) {
+    return "Request body too large";
+  }
+  return null;
+}
+
 export async function readCachedDiagnosis(
   cache: KVNamespace | undefined,
   cacheKey: string | null
@@ -200,16 +224,7 @@ export async function persistCachedDiagnosis(
 
 export function resolveClientIp(request: Request): string | null {
   const cfIp = request.headers.get("CF-Connecting-IP");
-  if (cfIp) return cfIp;
-
-  const realIp = request.headers.get("X-Real-IP");
-  if (realIp) return realIp;
-
-  const forwardedFor = request.headers.get("X-Forwarded-For");
-  if (!forwardedFor) return null;
-
-  const first = forwardedFor.split(",")[0]?.trim();
-  return first || null;
+  return cfIp?.trim() || null;
 }
 
 export async function runDiagnosis(
@@ -230,4 +245,111 @@ export async function runDiagnosis(
     input.context,
     { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID }
   );
+}
+
+export async function executeDiagnosisRequest(
+  request: Request,
+  appId: string,
+  config: AppConfig,
+  env: DiagnosisEnvironment,
+  deps: DiagnosisDependencies,
+  requestId: string
+): Promise<DiagnosisExecutionResult> {
+  const ip = resolveClientIp(request);
+  if (!ip) {
+    console.error(`[${requestId}] Unable to determine client IP appId=${appId}`);
+    return {
+      ok: false,
+      status: 503,
+      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+    };
+  }
+
+  try {
+    if (await deps.isRateLimited(ip, config.daily_limit, env.RATE_LIMITER ?? null)) {
+      return {
+        ok: false,
+        status: 429,
+        payload: { error: "Rate limit exceeded. Please try again tomorrow." },
+      };
+    }
+  } catch (error) {
+    console.error(
+      `[${requestId}] Rate limit check failed appId=${appId}:`,
+      error instanceof Error ? error.message : error
+    );
+    return {
+      ok: false,
+      status: 503,
+      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+    };
+  }
+
+  const contentLengthError = validateContentLength(request, env);
+  if (contentLengthError) {
+    return {
+      ok: false,
+      status: 413,
+      payload: { error: contentLengthError },
+    };
+  }
+
+  let rawBody: { image?: unknown; imageHash?: unknown; context?: unknown };
+  try {
+    rawBody = await request.json();
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      payload: { error: "Invalid JSON body" },
+    };
+  }
+
+  let input: AnalyzeInput;
+  try {
+    input = parseAnalyzeBody(rawBody, config);
+  } catch (error) {
+    return {
+      ok: false,
+      status: 400,
+      payload: { error: error instanceof Error ? error.message : "Invalid request body" },
+    };
+  }
+
+  const imageSizeError = validateImageSize(input.image, env);
+  if (imageSizeError) {
+    return {
+      ok: false,
+      status: 413,
+      payload: { error: imageSizeError },
+    };
+  }
+
+  let cacheKey: string | null = null;
+  if (env.DIAGNOSIS_CACHE_KV) {
+    try {
+      cacheKey = await buildServerCacheKey(appId, input.imageHash, input.image, input.context);
+      const cached = await readCachedDiagnosis(env.DIAGNOSIS_CACHE_KV, cacheKey);
+      if (cached) {
+        return { ok: true, payload: cached, cacheKey };
+      }
+    } catch {
+      cacheKey = null;
+    }
+  }
+
+  try {
+    const enriched = await runDiagnosis(input, config, env, deps);
+    return { ok: true, payload: enriched, cacheKey };
+  } catch (error) {
+    console.error(
+      `[${requestId}] Claude API error appId=${appId}:`,
+      error instanceof Error ? error.message : error
+    );
+    return {
+      ok: false,
+      status: 503,
+      payload: { error: "Diagnosis service temporarily unavailable", requestId },
+    };
+  }
 }

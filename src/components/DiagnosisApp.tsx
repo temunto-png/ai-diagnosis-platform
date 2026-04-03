@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import ImageUploader from "./ImageUploader";
 import DiagnosisResult from "./DiagnosisResult";
 import AffiliateBlock from "./AffiliateBlock";
@@ -23,16 +23,14 @@ const BASE_COUNT = 120;
 const BASE_DATE = new Date("2026-04-01").getTime();
 const DAILY_INCREMENT = 5;
 
-function useDiagnosisCount(): number {
-  return useMemo(() => {
-    const elapsed = Math.floor((Date.now() - BASE_DATE) / (1000 * 60 * 60 * 24));
-    return BASE_COUNT + Math.max(0, elapsed) * DAILY_INCREMENT;
-  }, []);
+function getDiagnosisCount(now = Date.now()): number {
+  const elapsed = Math.floor((now - BASE_DATE) / (1000 * 60 * 60 * 24));
+  return BASE_COUNT + Math.max(0, elapsed) * DAILY_INCREMENT;
 }
 
 export default function DiagnosisApp({ appId, context = {} }: Props) {
   const [result, setResult] = useState<DiagnosisData | null>(null);
-  const diagnosisCount = useDiagnosisCount();
+  const diagnosisCount = getDiagnosisCount();
 
   const handleReset = () => setResult(null);
 

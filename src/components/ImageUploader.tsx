@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { DiagnosisData } from "../lib/types";
 import { buildClientCacheKey } from "../lib/diagnosis-service";
 
@@ -123,20 +123,16 @@ export default function ImageUploader({ appId, context = {}, onResult, onReset, 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (file) void handleFile(file);
     e.target.value = "";
   };
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith("image/")) handleFile(file);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [appId, context]
-  );
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) void handleFile(file);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
