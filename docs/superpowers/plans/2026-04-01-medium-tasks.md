@@ -45,7 +45,7 @@
 - Modify: `src/content/guide/tire-check-timing.mdx`
 - Modify: `src/content/guide/winter-tire-timing.mdx`
 
-- [ ] **Step 1: 各MDXのpubDateを変更する**
+- [x] **Step 1: 各MDXのpubDateを変更する**
 
 各ファイルの frontmatter `pubDate: 2026-03-30` を以下の値に変更する。
 
@@ -99,7 +99,7 @@ pubDate: 2025-11-03
 pubDate: 2025-10-15
 ```
 
-- [ ] **Step 2: 変更を確認する**
+- [x] **Step 2: 変更を確認する**
 
 ```bash
 grep "pubDate:" src/content/guide/*.mdx
@@ -119,7 +119,7 @@ src/content/guide/wallpaper-repair.mdx:pubDate: 2025-11-18
 src/content/guide/winter-tire-timing.mdx:pubDate: 2025-10-15
 ```
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add src/content/guide/
@@ -133,7 +133,7 @@ git commit -m "content: distribute guide article pubDates over 6 months (2025-10
 **Files:**
 - Create: `src/pages/404.astro`
 
-- [ ] **Step 1: 404.astroを作成する**
+- [x] **Step 1: 404.astroを作成する**
 
 `src/pages/404.astro` を以下の内容で作成する:
 
@@ -224,7 +224,7 @@ import Base from "../layouts/Base.astro";
 </style>
 ```
 
-- [ ] **Step 2: ビルドして確認する**
+- [x] **Step 2: ビルドして確認する**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -232,7 +232,7 @@ npm run build 2>&1 | tail -5
 
 期待: `✓` または `Build complete` でエラーなし。
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add src/pages/404.astro
@@ -246,7 +246,7 @@ git commit -m "feat: add 404 page with navigation links"
 **Files:**
 - Create: `src/components/SchemaOrg.astro`
 
-- [ ] **Step 1: SchemaOrg.astroを作成する**
+- [x] **Step 1: SchemaOrg.astroを作成する**
 
 `src/components/SchemaOrg.astro` を以下の内容で作成する:
 
@@ -315,7 +315,7 @@ const breadcrumbSchema =
 {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />}
 ```
 
-- [ ] **Step 2: TypeScriptエラーがないか確認する**
+- [x] **Step 2: TypeScriptエラーがないか確認する**
 
 ```bash
 npx tsc --noEmit 2>&1 | head -20
@@ -323,7 +323,7 @@ npx tsc --noEmit 2>&1 | head -20
 
 期待: エラーなし（出力なし）。
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add src/components/SchemaOrg.astro
@@ -338,7 +338,7 @@ git commit -m "feat: add SchemaOrg component for JSON-LD structured data"
 - Modify: `src/layouts/Base.astro`
 - Modify: `src/pages/guide/[slug].astro`
 
-- [ ] **Step 1: Base.astroにhead slotとauthorメタタグとSchemaOrgを追加する**
+- [x] **Step 1: Base.astroにhead slotとauthorメタタグとSchemaOrgを追加する**
 
 `src/layouts/Base.astro` の `<head>` 内を以下のように変更する。
 
@@ -383,7 +383,7 @@ interface Props {
     <!-- Fonts -->
 ```
 
-- [ ] **Step 2: [slug].astroにSchemaOrgとE-E-A-Tバッジを追加する**
+- [x] **Step 2: [slug].astroにSchemaOrgとE-E-A-Tバッジを追加する**
 
 `src/pages/guide/[slug].astro` を以下のように変更する。
 
@@ -458,7 +458,7 @@ import { getCollection, getEntry, render } from "astro:content";
 </style>
 ```
 
-- [ ] **Step 3: ビルドしてJSON-LDが出力されているか確認する**
+- [x] **Step 3: ビルドしてJSON-LDが出力されているか確認する**
 
 ```bash
 npm run build 2>&1 | tail -5
@@ -478,7 +478,7 @@ grep "application/ld+json" dist/client/guide/black-mold-removal/index.html
 
 期待: `<script type="application/ld+json">` が3行（Organization・Article・BreadcrumbList）ヒット。
 
-- [ ] **Step 4: TypeScriptエラーがないか確認する**
+- [x] **Step 4: TypeScriptエラーがないか確認する**
 
 ```bash
 npx tsc --noEmit 2>&1 | head -20
@@ -486,7 +486,7 @@ npx tsc --noEmit 2>&1 | head -20
 
 期待: エラーなし。
 
-- [ ] **Step 5: 既存テストが通ることを確認する**
+- [x] **Step 5: 既存テストが通ることを確認する**
 
 ```bash
 npm test
@@ -494,7 +494,7 @@ npm test
 
 期待: `16 passed` (既存テスト全通過)。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add src/layouts/Base.astro src/pages/guide/[slug].astro
@@ -505,7 +505,7 @@ git commit -m "feat: integrate SchemaOrg structured data and E-E-A-T badge into 
 
 ## Task 5: 最終確認
 
-- [ ] **Step 1: クリーンビルドで全ページ確認**
+- [x] **Step 1: クリーンビルドで全ページ確認**
 
 ```bash
 npm run build 2>&1 | grep -E "(error|warn|✓|complete)" | head -20
@@ -513,7 +513,7 @@ npm run build 2>&1 | grep -E "(error|warn|✓|complete)" | head -20
 
 期待: `error` の行がないこと。
 
-- [ ] **Step 2: 404ページのHTMLを確認**
+- [x] **Step 2: 404ページのHTMLを確認**
 
 ```bash
 ls dist/client/404.html 2>/dev/null && echo "EXISTS" || echo "NOT FOUND"
@@ -521,7 +521,7 @@ ls dist/client/404.html 2>/dev/null && echo "EXISTS" || echo "NOT FOUND"
 
 期待: `EXISTS`
 
-- [ ] **Step 3: author メタタグの確認**
+- [x] **Step 3: author メタタグの確認**
 
 ```bash
 grep 'name="author"' dist/client/index.html
@@ -532,7 +532,7 @@ grep 'name="author"' dist/client/index.html
 <meta name="author" content="撮偵 — AIホームケア診断"/>
 ```
 
-- [ ] **Step 4: ガイド一覧ページで公開日が分散していることを確認**
+- [x] **Step 4: ガイド一覧ページで公開日が分散していることを確認**
 
 ```bash
 grep -r "2025-10\|2025-11\|2025-12\|2026-01\|2026-02\|2026-03" dist/client/guide/ --include="*.html" -l | wc -l
@@ -540,7 +540,7 @@ grep -r "2025-10\|2025-11\|2025-12\|2026-01\|2026-02\|2026-03" dist/client/guide
 
 期待: `10`（全10記事のhtmlが異なる月の日付を含む）
 
-- [ ] **Step 5: progress.md の Medium 課題を完了済みに更新**
+- [x] **Step 5: progress.md の Medium 課題を完了済みに更新**
 
 `.claude/progress.md` の残課題テーブルを以下のように更新する:
 
@@ -551,7 +551,7 @@ grep -r "2025-10\|2025-11\|2025-12\|2026-01\|2026-02\|2026-03" dist/client/guide
 | M4 | ~~**E-E-A-T 欠如**~~ | ✅ authorメタタグ追加・記事ページにAIコンセプトバッジ追加 |
 ```
 
-- [ ] **Step 6: 最終コミット**
+- [x] **Step 6: 最終コミット**
 
 ```bash
 git add .claude/progress.md
