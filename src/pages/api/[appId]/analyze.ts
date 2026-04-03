@@ -8,6 +8,7 @@ import {
   parseAnalyzeBody,
   persistCachedDiagnosis,
   readCachedDiagnosis,
+  resolveClientIp,
   resolveAllowedOrigins,
   resolveCorsHeaders,
   runDiagnosis,
@@ -54,7 +55,12 @@ export function createAnalyzeRoute(
         return Response.json({ error: "App not found" }, { status: 404, headers: corsHeaders });
       }
 
-      const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+      const ip = resolveClientIp(request);
+      if (!ip) {
+        console.error(`[${requestId}] Unable to determine client IP appId=${appId}`);
+        return serviceUnavailable(requestId, corsHeaders);
+      }
+
       try {
         if (await deps.isRateLimited(ip, config.daily_limit, runtimeEnv.RATE_LIMITER ?? null)) {
           return Response.json(

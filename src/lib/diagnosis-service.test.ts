@@ -5,8 +5,10 @@ import {
   buildCorsHeaders,
   interpolatePrompt,
   parseAnalyzeBody,
+  resolveClientIp,
   resolveAllowedOrigins,
   resolveCorsHeaders,
+  runDiagnosis,
   sanitizeContext,
   validateRequestOrigin,
 } from "./diagnosis-service";
@@ -26,18 +28,18 @@ const config: AppConfig = {
 };
 
 describe("diagnosis-service", () => {
-  it("keeps only allowed context keys and JSON-escapes values", () => {
+  it("keeps only allowed context keys and trims values", () => {
     const context = sanitizeContext(
-      { surface: 'wall"\nignore', ignored: "x" },
+      { surface: ' wall"\nignore ', ignored: "x" },
       config
     );
 
-    expect(context).toEqual({ surface: "\"wall\\\"\\nignore\"" });
+    expect(context).toEqual({ surface: 'wall"\nignore' });
   });
 
   it("interpolates prompt with safe encoded values", () => {
-    const prompt = interpolatePrompt(config.prompt, { surface: "\"kitchen wall\"" });
-    expect(prompt).toContain("\"kitchen wall\"");
+    const prompt = interpolatePrompt(config.prompt, { surface: 'kitchen "wall"' });
+    expect(prompt).toContain("\"kitchen \\\"wall\\\"\"");
   });
 
   it("rejects missing origin", () => {
@@ -70,11 +72,11 @@ describe("diagnosis-service", () => {
     );
 
     expect(input.imageHash).toBe("a".repeat(64));
-    expect(input.context).toEqual({ surface: "\"wall\"" });
+    expect(input.context).toEqual({ surface: "wall" });
   });
 
   it("builds stable client cache keys from app, hash and context", () => {
-    const key = buildClientCacheKey("app", "b".repeat(64), { surface: "\"wall\"" });
+    const key = buildClientCacheKey("app", "b".repeat(64), { surface: "wall" });
     expect(key).toContain("app");
     expect(key).toContain("b".repeat(64));
   });
@@ -85,5 +87,61 @@ describe("diagnosis-service", () => {
       ["https://satsu-tei.com", "http://localhost:4321"]
     ) as Record<string, string>;
     expect(headers["Access-Control-Allow-Origin"]).toBe("http://localhost:4321");
+  });
+
+  it("resolves client IP from trusted headers", () => {
+    const request = new Request("https://example.com/api/test", {
+      headers: { "X-Forwarded-For": "203.0.113.10, 10.0.0.1" },
+    });
+
+    expect(resolveClientIp(request)).toBe("203.0.113.10");
+  });
+
+  it("normalizes Claude output before monetization", async () => {
+    const result = await runDiagnosis(
+      {
+        image: "abc",
+        imageHash: "a".repeat(64),
+        context: { surface: "wall" },
+      },
+      {
+        ...config,
+        monetization: [{ condition: "default", type: "affiliate", keyword: "{{products[0].amazon_keyword}}" }],
+      },
+      {
+        ANTHROPIC_API_KEY: "key",
+        AMAZON_ASSOCIATE_ID: "amazon-22",
+        RAKUTEN_AFFILIATE_ID: "rakuten-id",
+      },
+      {
+        callClaude: async () => ({
+          damage_type: " scratch ",
+          products: [
+            {
+              category: " filler ",
+              amazon_keyword: " repair filler ",
+              reason: " smooths the damage ",
+              priority: 1.8,
+            },
+            "invalid",
+          ],
+          unexpected: "<ignored>",
+        }),
+        isRateLimited: async () => false,
+      }
+    );
+
+    expect(result).toMatchObject({
+      damage_type: "scratch",
+      products: [
+        {
+          category: "filler",
+          amazon_keyword: "repair filler",
+          reason: "smooths the damage",
+          priority: 1,
+        },
+      ],
+    });
+    expect("unexpected" in result).toBe(false);
   });
 });
