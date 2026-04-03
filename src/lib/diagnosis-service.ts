@@ -127,13 +127,16 @@ export function interpolatePrompt(template: string, context: Record<string, stri
 
 export async function buildServerCacheKey(
   appId: string,
-  imageHash: string | null,
   image: string,
   context: Record<string, string>
 ): Promise<string> {
+  const imageBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(image));
+  const imageDigest = Array.from(new Uint8Array(imageBuf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   const input = JSON.stringify({
     appId,
-    image: imageHash ?? image,
+    imageDigest,
     context: Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b))),
   });
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -328,7 +331,7 @@ export async function executeDiagnosisRequest(
   let cacheKey: string | null = null;
   if (env.DIAGNOSIS_CACHE_KV) {
     try {
-      cacheKey = await buildServerCacheKey(appId, input.imageHash, input.image, input.context);
+      cacheKey = await buildServerCacheKey(appId, input.image, input.context);
       const cached = await readCachedDiagnosis(env.DIAGNOSIS_CACHE_KV, cacheKey);
       if (cached) {
         return { ok: true, payload: cached, cacheKey };

@@ -157,11 +157,11 @@ describe("diagnosis-service", () => {
     });
   });
 
-  it("uses client image hash to build stable server cache keys", async () => {
-    const fromHash = await buildServerCacheKey("app", "a".repeat(64), "image-one", { surface: "wall" });
-    const fromOtherImage = await buildServerCacheKey("app", "a".repeat(64), "image-two", { surface: "wall" });
+  it("builds distinct server cache keys for different images", async () => {
+    const first = await buildServerCacheKey("app", "image-one", { surface: "wall" });
+    const second = await buildServerCacheKey("app", "image-two", { surface: "wall" });
 
-    expect(fromHash).toBe(fromOtherImage);
+    expect(first).not.toBe(second);
   });
 
   it("normalizes Claude output before monetization", async () => {
