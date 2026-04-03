@@ -1,6 +1,11 @@
 /// <reference types="astro/client" />
 /// <reference types="@astrojs/cloudflare" />
 
+declare module "cloudflare:workers" {
+  const env: CloudflareEnv;
+  export { env };
+}
+
 type CloudflareEnv = {
   ANTHROPIC_API_KEY: string;
   AMAZON_ASSOCIATE_ID: string;
