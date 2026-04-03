@@ -28,17 +28,28 @@ async function resizeImage(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
 }
 
+async function buildCacheKey(
+  appId: string,
+  image: string,
+  context: Record<string, string>
+): Promise<string> {
+  const contextKey = JSON.stringify(
+    Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
+  );
+  const payload = JSON.stringify({ appId, image, context: contextKey });
+  const encoded = new TextEncoder().encode(payload);
+  const buf = await crypto.subtle.digest("SHA-256", encoded);
+  const hash = btoa(String.fromCharCode(...new Uint8Array(buf))).slice(0, 16);
+  return `result:${appId}:${hash}`;
+}
+
 async function getOrFetch(
   file: File,
   appId: string,
   context: Record<string, string>
 ): Promise<DiagnosisData> {
-  const buf = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
-  const hash = btoa(String.fromCharCode(...new Uint8Array(buf))).slice(0, 16);
-  const contextKey = JSON.stringify(
-    Object.fromEntries(Object.entries(context).sort(([a], [b]) => a.localeCompare(b)))
-  );
-  const cacheKey = `result:${appId}:${hash}:${contextKey}`;
+  const image = await resizeImage(file);
+  const cacheKey = await buildCacheKey(appId, image, context);
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
@@ -50,7 +61,6 @@ async function getOrFetch(
     }
   }
 
-  const image = await resizeImage(file);
   const res = await fetch(`/api/${appId}/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

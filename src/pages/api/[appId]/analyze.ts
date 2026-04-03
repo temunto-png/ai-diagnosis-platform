@@ -15,7 +15,6 @@ async function buildCacheKey(appId: string, image: string, context: Record<strin
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** 許可されていない Origin からのリクエストを拒否する。同一オリジン（Origin なし）は通す。 */
 function checkOrigin(request: Request): Response | null {
   const origin = request.headers.get("Origin");
   if (origin !== null && !ALLOWED_ORIGINS.includes(origin)) {
@@ -24,7 +23,6 @@ function checkOrigin(request: Request): Response | null {
   return null;
 }
 
-/** context を安全な値に正規化する。文字列値のみ許可し、長さとキー数を制限する。 */
 function sanitizeContext(raw: unknown): Record<string, string> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   return Object.fromEntries(
@@ -61,14 +59,21 @@ export const POST: APIRoute = async ({ params, request }) => {
 
     const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
     try {
-      if (await isRateLimited(ip, config.daily_limit, env.RATE_LIMIT_KV)) {
+      if (await isRateLimited(ip, config.daily_limit, env.RATE_LIMITER)) {
         return Response.json(
           { error: "Rate limit exceeded. Please try again tomorrow." },
           { status: 429, headers: corsHeaders }
         );
       }
-    } catch {
-      // KV エラー時はレート制限をスキップして続行
+    } catch (error) {
+      console.error(
+        `[${requestId}] Rate limit check failed appId=${appId}:`,
+        error instanceof Error ? error.message : error
+      );
+      return Response.json(
+        { error: "Diagnosis service temporarily unavailable", requestId },
+        { status: 503, headers: corsHeaders }
+      );
     }
 
     let body: { image: string; context?: unknown };
@@ -85,7 +90,6 @@ export const POST: APIRoute = async ({ params, request }) => {
       return Response.json({ error: "image field is required" }, { status: 400, headers: corsHeaders });
     }
 
-    // 画像サイズ上限チェック（デフォルト ~1.5MB base64）
     const maxImageLen = parseInt(env.MAX_IMAGE_BASE64_LENGTH ?? "1500000", 10);
     if (image.length > maxImageLen) {
       return Response.json({ error: "Image payload too large" }, { status: 413, headers: corsHeaders });
@@ -96,7 +100,6 @@ export const POST: APIRoute = async ({ params, request }) => {
       (_: string, key: string) => context[key] ?? ""
     );
 
-    // サーバーサイドキャッシュ確認（KV バインド時のみ）
     let cacheKey: string | null = null;
     if (env.DIAGNOSIS_CACHE_KV) {
       try {
@@ -106,7 +109,7 @@ export const POST: APIRoute = async ({ params, request }) => {
           return Response.json(JSON.parse(cached), { headers: corsHeaders });
         }
       } catch {
-        // キャッシュ失敗時は通常フローへ
+        // Ignore cache failures and continue without cached data.
       }
     }
 
@@ -130,7 +133,6 @@ export const POST: APIRoute = async ({ params, request }) => {
       { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID }
     );
 
-    // キャッシュ書き込み（失敗しても続行）
     if (env.DIAGNOSIS_CACHE_KV && cacheKey) {
       const ttl = parseInt(env.DIAGNOSIS_CACHE_TTL_SECONDS ?? "86400", 10);
       env.DIAGNOSIS_CACHE_KV.put(cacheKey, JSON.stringify(enriched), { expirationTtl: ttl }).catch(() => {});

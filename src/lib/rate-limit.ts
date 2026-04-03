@@ -1,29 +1,43 @@
-interface RateLimitKV {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+interface RateLimiterStub {
+  fetch(request: Request): Promise<Response>;
+}
+
+interface RateLimiterNamespace {
+  getByName(name: string): RateLimiterStub;
 }
 
 const counts = new Map<string, { count: number }>();
 
-const KV_TTL_SECONDS = 25 * 60 * 60; // 25時間（日付変わり際のバッファ）
+function buildRateLimitKey(ip: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  return `rate:${ip}:${today}`;
+}
 
 export async function isRateLimited(
   ip: string,
   limit: number,
-  kv?: RateLimitKV | null
+  namespace?: RateLimiterNamespace | null
 ): Promise<boolean> {
-  const today = new Date().toISOString().slice(0, 10);
-  const key = `rate:${ip}:${today}`;
+  const key = buildRateLimitKey(ip);
 
-  if (kv) {
-    const raw = await kv.get(key);
-    const count = raw ? parseInt(raw, 10) : 0;
-    if (count >= limit) return true;
-    await kv.put(key, String(count + 1), { expirationTtl: KV_TTL_SECONDS });
-    return false;
+  if (namespace) {
+    const stub = namespace.getByName(key);
+    const response = await stub.fetch(
+      new Request("https://internal-rate-limiter/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit }),
+      })
+    );
+
+    if (!response.ok) {
+      throw new Error(`Rate limiter durable object error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as { limited?: boolean };
+    return data.limited === true;
   }
 
-  // in-memory fallback（ローカル開発・テスト用）
   const entry = counts.get(key);
   if (!entry) {
     counts.set(key, { count: 1 });
@@ -34,7 +48,6 @@ export async function isRateLimited(
   return false;
 }
 
-/** テスト専用：カウンターをリセット */
 export function clearCountsForTest(): void {
   counts.clear();
 }
