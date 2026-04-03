@@ -68,7 +68,7 @@ export async function hashBase64(value: string): Promise<string> {
 
 function getDefaultUploadDependencies(): UploadDependencies {
   return {
-    fetchImpl: fetch,
+    fetchImpl: globalThis.fetch.bind(globalThis),
     storage: sessionStorage,
     hashBase64,
     resizeImage,

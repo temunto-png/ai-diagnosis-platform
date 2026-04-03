@@ -71,9 +71,10 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
   <body>
     <header class="site-header">
       <div class="container hstack">
-        <a href="/" class="logo">
-          <span class="logo-icon">診</span>
-          さつ<span class="logo-accent">てい</span>
+        <a href="/" class="logo" aria-label={`${SITE_NAME} ホーム`}>
+          <span class="logo-wordmark">
+            さつ<span class="logo-accent">てい</span>
+          </span>
         </a>
         <nav class="main-nav">
           <a href="/" class="nav-link">診断ツール</a>
@@ -88,7 +89,9 @@ const gaId = import.meta.env.PUBLIC_GA_ID;
 
     <footer class="site-footer">
       <div class="container">
-        <p class="footer-logo">診 さつ<span class="logo-accent">てい</span></p>
+        <p class="footer-logo">
+          さつ<span class="logo-accent">てい</span>
+        </p>
         <p class="footer-tagline">
           画像を1枚アップロードするだけで、住まいの状態を見える化する AI 診断ツール
         </p>
@@ -186,7 +189,7 @@ button { cursor: pointer; font-family: inherit; }
   transition: opacity 0.18s;
 }
 .logo:hover { opacity: 0.75; }
-.logo-icon { font-size: 1.25rem; line-height: 1; }
+.logo-wordmark { line-height: 1; }
 .logo-accent { color: var(--primary); }
 .main-nav { display: flex; gap: 0.25rem; }
 .nav-link {
