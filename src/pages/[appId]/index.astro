@@ -23,11 +23,17 @@ const meta = appMeta[appId!] ?? { icon: "📷" };
 ---
 
 <Base title={config.seo.title} description={config.seo.description} ogImage={`/og/${appId}.png`}>
-  <div class="tool-page">
+  <div class="tool-page fade-up visible">
     <div class="tool-header">
       <span class="tool-icon">{meta.icon}</span>
       <h1 class="tool-title">{config.name}</h1>
       <p class="tool-desc">{config.description}</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <span class="ai-badge">⚡ Claude AI 搭載</span>
+      <span style="font-size:0.8125rem; color:var(--text-muted);">
+        ✓ 無料 &nbsp;✓ 登録不要 &nbsp;✓ 数秒で診断
+      </span>
     </div>
 
     <div class="how-to">

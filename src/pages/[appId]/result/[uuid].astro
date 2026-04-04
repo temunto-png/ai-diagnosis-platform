@@ -22,10 +22,19 @@ const relatedEntries = (
 
 <Base title={`診断結果 | ${config.name}`}>
   <div class="article-page">
+    <div class="trust-bar" style="border-radius: var(--radius-lg); margin-bottom: 1.5rem;">
+      <div class="trust-item">✅ <span>診断完了</span></div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span class="ai-badge">⚡ Claude AI 解析済み</span></div>
+    </div>
     <h1 class="page-title">診断結果</h1>
     <p class="page-desc">
       このページは共有用の診断結果ページです。診断した結果を確認したい場合は、元の診断ツール画面に戻ってください。
     </p>
+
+    <div style="background:var(--yellow-light); border:1.5px solid #fde68a; border-radius:var(--radius); padding:1rem 1.25rem; margin:1.5rem 0; font-size:0.875rem; color:var(--yellow);">
+      ⚠️ <strong>放置すると悪化するリスクがあります。</strong>今すぐ適切な対処を確認してください。
+    </div>
 
     <AdUnit slot={import.meta.env.PUBLIC_ADSENSE_SLOT_TOP} />
 
