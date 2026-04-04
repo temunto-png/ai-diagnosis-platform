@@ -7,8 +7,26 @@ const guide = defineCollection({
     title: z.string(),
     description: z.string(),
     pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
     category: z.string(),
     tags: z.array(z.string()),
+    faq: z
+      .array(
+        z.object({
+          question: z.string(),
+          answer: z.string(),
+        })
+      )
+      .optional(),
+    howto: z.boolean().optional(),
+    steps: z
+      .array(
+        z.object({
+          name: z.string(),
+          text: z.string(),
+        })
+      )
+      .optional(),
   }),
 });
 

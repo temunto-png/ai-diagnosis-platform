@@ -3,6 +3,7 @@ export const prerender = true;
 
 import Base from "../layouts/Base.astro";
 import AdUnit from "../components/AdUnit.astro";
+import SchemaOrg from "../components/SchemaOrg.astro";
 import { listApps } from "../configs/index";
 
 const apps = listApps();
@@ -25,6 +26,7 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
   title="撮偵 — 写真1枚でAIが解決策を診断"
   description="画像を送るだけで、修理・キズ・カビなどの状態をAIが整理する住まい向け診断ツールです。"
 >
+  <SchemaOrg slot="head" type="website" />
   <section class="hero" style="background: var(--hero-bg);">
     <div class="hero-eyebrow">AI画像診断ツール</div>
     <h1 class="hero-title">

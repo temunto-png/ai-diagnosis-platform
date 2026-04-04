@@ -1,6 +1,9 @@
 ---
 import { SITE_NAME, SITE_URL } from "../lib/site";
 
+type FaqItem = { question: string; answer: string };
+type HowToStep = { name: string; text: string };
+
 type Props =
   | { type: "website" }
   | {
@@ -8,10 +11,22 @@ type Props =
       title: string;
       description: string;
       pubDate: Date;
+      updatedDate?: Date;
       url: string;
+      faq?: FaqItem[];
+      howto?: boolean;
+      steps?: HowToStep[];
     };
 
 const props = Astro.props as Props;
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: "画像1枚でAIが住まいの状態を診断する無料ツール",
+};
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -28,7 +43,12 @@ const articleSchema =
         headline: props.title,
         description: props.description,
         datePublished: props.pubDate.toISOString(),
+        dateModified: (props.updatedDate ?? props.pubDate).toISOString(),
         url: props.url,
+        speakable: {
+          "@type": "SpeakableSpecification",
+          cssSelector: [".article-summary", "h1", "h2:first-of-type"],
+        },
         author: {
           "@type": "Organization",
           name: SITE_NAME,
@@ -54,12 +74,53 @@ const breadcrumbSchema =
         ],
       }
     : null;
+
+const faqSchema =
+  props.type === "article" && props.faq && props.faq.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: props.faq.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      }
+    : null;
+
+const howtoSchema =
+  props.type === "article" && props.howto && props.steps && props.steps.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: props.title,
+        description: props.description,
+        step: props.steps.map((s, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: s.name,
+          text: s.text,
+        })),
+      }
+    : null;
 ---
 
+{props.type === "website" && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+)}
 <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
 {articleSchema && (
   <script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
 )}
 {breadcrumbSchema && (
   <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+)}
+{faqSchema && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+)}
+{howtoSchema && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(howtoSchema)} />
 )}
