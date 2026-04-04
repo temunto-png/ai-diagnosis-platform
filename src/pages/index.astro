@@ -9,12 +9,12 @@ const apps = listApps();
 
 const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }> = {
   "diy-repair": {
-    icon: "修理",
+    icon: "🔨",
     iconBg: "icon-bg-orange",
     tagline: "壁や床のキズをチェック",
   },
   "kabi-diagnosis": {
-    icon: "カビ",
+    icon: "🔬",
     iconBg: "icon-bg-green",
     tagline: "住まいのカビ状態を整理",
   },
@@ -22,7 +22,7 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
 ---
 
 <Base
-  title="さつてい | 画像1枚で住まいの状態をAI診断"
+  title="撮偵 — 写真1枚でAIが解決策を診断"
   description="画像を送るだけで、修理・キズ・カビなどの状態をAIが整理する住まい向け診断ツールです。"
 >
   <section class="hero">
@@ -45,7 +45,7 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
       <p class="section-eyebrow">診断ツール一覧</p>
       <div class="apps-grid">
         {apps.map((app) => {
-          const meta = appMeta[app.id] ?? { icon: "診断", iconBg: "icon-bg-blue", tagline: "" };
+          const meta = appMeta[app.id] ?? { icon: "🔍", iconBg: "icon-bg-blue", tagline: "" };
           return (
             <a href={`/${app.id}/`} class="app-card">
               <div class={`app-card-icon-wrap ${meta.iconBg}`}>{meta.icon}</div>
@@ -69,9 +69,9 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
       <p class="section-eyebrow">使い方 3ステップ</p>
       <div class="steps-grid">
         {[
-          { step: "1", icon: "撮影", title: "画像を用意", desc: "スマホで気になる場所を撮影するだけです。" },
-          { step: "2", icon: "解析", title: "AIが診断", desc: "画像をもとに状態や深刻度を整理します。" },
-          { step: "3", icon: "対策", title: "次の一手を確認", desc: "対処の方向性や参考アイテムを確認できます。" },
+          { step: "1", icon: "📷", title: "画像を用意", desc: "スマホで気になる場所を撮影するだけです。" },
+          { step: "2", icon: "🤖", title: "AIが診断", desc: "画像をもとに状態や深刻度を整理します。" },
+          { step: "3", icon: "🛒", title: "次の一手を確認", desc: "対処の方向性や参考アイテムを確認できます。" },
         ].map(({ step, icon, title, desc }) => (
           <div class="step-card">
             <div class="step-num">{step}</div>

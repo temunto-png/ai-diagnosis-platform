@@ -16,10 +16,10 @@ if (!config) return Astro.redirect("/404");
 const cacheVersion = buildDiagnosisCacheVersion(config.prompt);
 
 const appMeta: Record<string, { icon: string }> = {
-  "diy-repair": { icon: "修理" },
-  "kabi-diagnosis": { icon: "カビ" },
+  "diy-repair": { icon: "🛠️" },
+  "kabi-diagnosis": { icon: "🦠" },
 };
-const meta = appMeta[appId!] ?? { icon: "診断" };
+const meta = appMeta[appId!] ?? { icon: "📷" };
 ---
 
 <Base title={config.seo.title} description={config.seo.description} ogImage={`/og/${appId}.png`}>
@@ -31,7 +31,7 @@ const meta = appMeta[appId!] ?? { icon: "診断" };
     </div>
 
     <div class="how-to">
-      <span class="how-to-icon">手順</span>
+      <span class="how-to-icon">💡</span>
       <span>
         画像をアップロードすると、AI が状態を解析し、対処の方向性や参考アイテムをわかりやすく表示します。
       </span>
