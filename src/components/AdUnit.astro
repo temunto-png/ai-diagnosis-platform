@@ -17,7 +17,7 @@ const adSlot = Astro.props.slot ?? import.meta.env.PUBLIC_ADSENSE_SLOT_DEFAULT;
       data-ad-format="auto"
       data-full-width-responsive="true"
     />
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <script>(window as any).adsbygoogle = (window as any).adsbygoogle || []; ((window as any).adsbygoogle).push({});</script>
   </div>
 )}
 

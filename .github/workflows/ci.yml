@@ -34,3 +34,9 @@ jobs:
 
       - name: Build app
         run: npm run build
+        env:
+          PUBLIC_AMAZON_ASSOCIATE_ID: ${{ secrets.PUBLIC_AMAZON_ASSOCIATE_ID }}
+          PUBLIC_ADSENSE_CLIENT_ID: ${{ secrets.PUBLIC_ADSENSE_CLIENT_ID }}
+          PUBLIC_ADSENSE_SLOT_ARTICLE_MID: ${{ secrets.PUBLIC_ADSENSE_SLOT_ARTICLE_MID }}
+          PUBLIC_ADSENSE_SLOT_ARTICLE_BOTTOM: ${{ secrets.PUBLIC_ADSENSE_SLOT_ARTICLE_BOTTOM }}
+          PUBLIC_ADSENSE_SLOT_TOP: ${{ secrets.PUBLIC_ADSENSE_SLOT_TOP }}
