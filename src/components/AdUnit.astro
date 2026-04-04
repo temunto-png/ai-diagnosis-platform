@@ -1,20 +1,30 @@
 ---
+interface Props {
+  slot?: string;
+}
+
 const adsenseId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID;
+const adSlot = Astro.props.slot ?? import.meta.env.PUBLIC_ADSENSE_SLOT_DEFAULT;
 ---
 
-{adsenseId && (
-  <div>
-    <!-- AdSense を有効にする場合は、以下のコメントアウトを外して data-ad-slot を設定してください。 -->
-    <!--
+{adsenseId && adSlot && (
+  <div class="ad-unit">
     <ins
       class="adsbygoogle"
       style="display:block"
       data-ad-client={adsenseId}
-      data-ad-slot="XXXXXXXXXX"
+      data-ad-slot={adSlot}
       data-ad-format="auto"
       data-full-width-responsive="true"
     />
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    -->
   </div>
 )}
+
+<style>
+.ad-unit {
+  margin: 1.5rem 0;
+  min-height: 90px;
+  text-align: center;
+}
+</style>

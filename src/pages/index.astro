@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import Base from "../layouts/Base.astro";
+import AdUnit from "../components/AdUnit.astro";
 import { listApps } from "../configs/index";
 
 const apps = listApps();
@@ -95,6 +96,10 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
       </a>
     </div>
   </section>
+
+  <div class="container">
+    <AdUnit slot={import.meta.env.PUBLIC_ADSENSE_SLOT_TOP} />
+  </div>
 </Base>
 
 <style>
