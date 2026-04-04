@@ -16,7 +16,7 @@ const RELATED_ARTICLES: Record<string, string[]> = {
 
 const relatedSlugs = RELATED_ARTICLES[appId!] ?? [];
 const relatedEntries = (
-  await Promise.all(relatedSlugs.map((slug) => getEntry("guide", slug).catch(() => null)))
+  await Promise.all(relatedSlugs.map((slug) => Promise.resolve(getEntry("guide", slug as any)).then((e) => e ?? null).catch(() => null)))
 ).filter(Boolean);
 ---
 
