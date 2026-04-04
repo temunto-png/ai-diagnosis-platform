@@ -29,7 +29,8 @@ export function applyMonetization(
   result: Record<string, unknown>,
   rules: MonetizationRule[],
   context: Record<string, string>,
-  ids: { amazonId: string; rakutenId: string }
+  ids: { amazonId: string; rakutenId: string },
+  cpaUrl?: string
 ): Record<string, unknown> & { monetization?: MonetizationResult } {
   const rule = rules.find((candidate) => {
     if (candidate.condition === "default") return true;
@@ -38,7 +39,15 @@ export function applyMonetization(
     if (!field || !rawValue) return false;
 
     const value = rawValue.replace(/'/g, "");
-    return String(result[field] ?? "") === value;
+    if (String(result[field] ?? "") !== value) return false;
+
+    // CPA ルールは URL が解決できる場合のみマッチ
+    if (candidate.type === "cpa") {
+      const resolvedCpaUrl = sanitizeCpaUrl(cpaUrl) ?? sanitizeCpaUrl(candidate.cpa_url);
+      if (!resolvedCpaUrl) return false;
+    }
+
+    return true;
   });
 
   if (!rule) return result;
@@ -59,7 +68,7 @@ export function applyMonetization(
       rule.type === "affiliate" && keyword
         ? `https://hb.afl.rakuten.co.jp/hgc/${ids.rakutenId}/?pc=https://search.rakuten.co.jp/search/mall/${encodeURIComponent(keyword)}/`
         : null,
-    cpa_url: rule.type === "cpa" ? sanitizeCpaUrl(rule.cpa_url) : null,
+    cpa_url: rule.type === "cpa" ? (sanitizeCpaUrl(cpaUrl) ?? sanitizeCpaUrl(rule.cpa_url)) : null,
   };
 
   return { ...result, monetization };

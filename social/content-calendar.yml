@@ -111,3 +111,28 @@ posts:
     platforms: [x, instagram]
     type: seasonal
     slug: null
+
+  # --- product-promo (Amazon アソシエイト 3件達成) ---
+  - date: "2026-04-10"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "カビキラー カビ取り 塩素系"
+
+  - date: "2026-04-17"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "防カビスプレー 浴室 予防"
+
+  - date: "2026-04-24"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "壁 補修 パテ DIY"
+
+  - date: "2026-05-01"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "フローリング 傷 補修 マーカー"

@@ -243,7 +243,8 @@ describe("diagnosis-service", () => {
           unexpected: "<ignored>",
         }),
         isRateLimited: async () => false,
-      }
+      },
+      "diy-repair"
     );
 
     expect(result).toMatchObject({
