@@ -51,9 +51,11 @@ const diagnosisType = kabiCategories.includes(entry.data.category)
       <Content />
     </div>
 
+    <AdUnit slot={import.meta.env.PUBLIC_ADSENSE_SLOT_ARTICLE_MID} />
+
     <DiagnosisCTA diagnosisType={diagnosisType} variant="bottom" />
 
-    <AdUnit />
+    <AdUnit slot={import.meta.env.PUBLIC_ADSENSE_SLOT_ARTICLE_BOTTOM} />
 
     <nav class="article-back">
       <a href="/guide/">ガイド一覧に戻る</a>
