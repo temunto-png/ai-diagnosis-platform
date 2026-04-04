@@ -194,6 +194,11 @@ export default function ImageUploader({
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
