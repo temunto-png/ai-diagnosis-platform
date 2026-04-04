@@ -56,13 +56,13 @@ export default function DiagnosisApp({ appId, cacheVersion, context = {} }: Prop
             display: "inline-flex",
             alignItems: "center",
             gap: "0.375rem",
-            background: "#fff7f0",
-            border: "1px solid #fdd9c0",
+            background: "var(--primary-gradient)",
             borderRadius: "9999px",
-            padding: "0.25rem 0.875rem",
+            padding: "0.375rem 1.25rem",
             fontSize: "0.8125rem",
-            color: "#c0582a",
+            color: "#fff",
             fontWeight: 600,
+            boxShadow: "0 4px 16px rgba(255,94,42,0.3)",
           }}
         >
           <span style={{ fontSize: "0.9rem" }}>実績</span>
@@ -81,6 +81,19 @@ export default function DiagnosisApp({ appId, cacheVersion, context = {} }: Prop
 
       {result && (
         <>
+          <div style={{
+            textAlign: "center",
+            padding: "0.75rem",
+            background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+            border: "1.5px solid #bbf7d0",
+            borderRadius: "var(--radius)",
+            marginBottom: "1rem",
+            color: "#15803d",
+            fontWeight: 700,
+            fontSize: "0.9375rem",
+          }}>
+            ✅ 診断が完了しました — 結果と対処法をご確認ください
+          </div>
           <DiagnosisResult data={result} appId={appId} />
           <ShareBlock appId={appId} data={result} />
           {result.monetization && (

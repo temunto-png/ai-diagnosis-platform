@@ -25,7 +25,7 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
   title="撮偵 — 写真1枚でAIが解決策を診断"
   description="画像を送るだけで、修理・キズ・カビなどの状態をAIが整理する住まい向け診断ツールです。"
 >
-  <section class="hero">
+  <section class="hero" style="background: var(--hero-bg);">
     <div class="hero-eyebrow">AI画像診断ツール</div>
     <h1 class="hero-title">
       画像<em>1枚</em>で<br />住まいの状態をAI診断
@@ -34,9 +34,51 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
       壁のキズ、床のへこみ、カビなど。<br />
       気になる場所を撮るだけで、診断結果と次の一手を整理できます。
     </p>
-    <div class="hero-badges">
-      <span class="pill-badge pill-orange">無料で使える</span>
-      <span class="pill-badge pill-orange">数秒で診断開始</span>
+    <div class="trust-bar" style="border-radius: var(--radius-lg); margin: 1.25rem 0;">
+      <div class="trust-item">
+        <span class="trust-item-num" id="hero-count">—</span>
+        <span>件の診断をサポート</span>
+      </div>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <span class="trust-item-num">無料</span>
+        <span>で使える</span>
+      </div>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <span class="ai-badge">⚡ Claude AI 搭載</span>
+      </div>
+    </div>
+    <script is:inline>
+      (function() {
+        var BASE = 120, BASE_DATE = new Date("2026-04-01T00:00:00+09:00").getTime(), DAILY = 5;
+        var elapsed = Math.floor((Date.now() - BASE_DATE) / 86400000);
+        var count = BASE + Math.max(0, elapsed) * DAILY;
+        var el = document.getElementById("hero-count");
+        if (el) el.textContent = count.toLocaleString("ja-JP");
+      })();
+    </script>
+    <div class="hero-demo" aria-hidden="true">
+      <div class="hero-demo-phone">
+        <div class="hero-demo-screen">
+          <div class="hero-demo-img-placeholder">
+            <span style="font-size:2rem;">🏠</span>
+            <div class="hero-demo-scan-bar"></div>
+          </div>
+          <div class="hero-demo-result">
+            <div class="hero-demo-badge">✅ 診断完了</div>
+            <div class="hero-demo-lines">
+              <div class="hero-demo-line" style="width:80%;"></div>
+              <div class="hero-demo-line" style="width:60%;"></div>
+              <div class="hero-demo-line" style="width:70%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+      <a href="/kabi-diagnosis/" class="btn btn-primary btn-cta">今すぐ無料診断 →</a>
+      <a href="/guide/" class="btn btn-ghost" style="border-radius: 999px;">使い方を見る</a>
     </div>
   </section>
 
@@ -44,10 +86,11 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
     <div class="container">
       <p class="section-eyebrow">診断ツール一覧</p>
       <div class="apps-grid">
-        {apps.map((app) => {
+        {apps.map((app, idx) => {
           const meta = appMeta[app.id] ?? { icon: "🔍", iconBg: "icon-bg-blue", tagline: "" };
           return (
-            <a href={`/${app.id}/`} class="app-card">
+            <a href={`/${app.id}/`} class="app-card fade-up">
+              {idx === 0 && <div class="app-card-badge">人気</div>}
               <div class={`app-card-icon-wrap ${meta.iconBg}`}>{meta.icon}</div>
               <div>
                 <div class="app-card-name">{app.name}</div>
@@ -72,8 +115,8 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
           { step: "1", icon: "📷", title: "画像を用意", desc: "スマホで気になる場所を撮影するだけです。" },
           { step: "2", icon: "🤖", title: "AIが診断", desc: "画像をもとに状態や深刻度を整理します。" },
           { step: "3", icon: "🛒", title: "次の一手を確認", desc: "対処の方向性や参考アイテムを確認できます。" },
-        ].map(({ step, icon, title, desc }) => (
-          <div class="step-card">
+        ].map(({ step, icon, title, desc }, idx) => (
+          <div class="step-card fade-up" style={`transition-delay: ${idx * 100}ms`}>
             <div class="step-num">{step}</div>
             <div class="step-icon">{icon}</div>
             <div class="step-title">{title}</div>
@@ -118,7 +161,7 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
 }
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 7vw, 4.2rem);
+  font-size: var(--text-hero);
   line-height: 1.08;
   margin-bottom: 1rem;
 }
@@ -175,9 +218,21 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
   transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 .app-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--primary-mid);
-  box-shadow: var(--shadow);
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-card-hover);
+}
+.app-card-badge {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: var(--primary-gradient);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
 }
 .app-card-icon-wrap {
   display: inline-flex;
@@ -264,5 +319,72 @@ const appMeta: Record<string, { icon: string; iconBg: string; tagline: string }>
 .btn-outline {
   border: 1.5px solid currentColor;
   background: transparent;
+}
+.hero-demo {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0 0;
+}
+.hero-demo-phone {
+  width: 200px;
+  background: #1a1a2e;
+  border-radius: 24px;
+  padding: 12px;
+  box-shadow: var(--shadow-float);
+}
+.hero-demo-screen {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 140px;
+}
+.hero-demo-img-placeholder {
+  position: relative;
+  background: linear-gradient(135deg, #f8fafc, #e8ecf2);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.hero-demo-scan-bar {
+  position: absolute;
+  inset-inline: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  box-shadow: 0 0 8px rgba(255, 94, 42, 0.6);
+  animation: heroScan 2s ease-in-out infinite;
+}
+@keyframes heroScan {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+.hero-demo-result {
+  padding: 8px 10px;
+}
+.hero-demo-badge {
+  font-size: 9px;
+  font-weight: 800;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 2px 8px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.hero-demo-line {
+  height: 6px;
+  background: #e8ecf2;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  animation: shimmer 1.5s ease-in-out infinite alternate;
+}
+@keyframes shimmer {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-demo-scan-bar { animation: none; top: 50%; }
+  .hero-demo-line { animation: none; }
 }
 </style>

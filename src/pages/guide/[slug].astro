@@ -22,6 +22,9 @@ const kabiCategories = ["カビ対策", "水回りDIY"];
 const diagnosisType = kabiCategories.includes(entry.data.category)
   ? "kabi-diagnosis"
   : "diy-repair";
+const diagnosisHref = entry.id.includes("kabi") || entry.id.includes("mold")
+  ? "/kabi-diagnosis/"
+  : "/diy-repair/";
 ---
 
 <Base title={entry.data.title} description={entry.data.description}>
@@ -55,7 +58,26 @@ const diagnosisType = kabiCategories.includes(entry.data.category)
 
     <DiagnosisCTA diagnosisType={diagnosisType} variant="bottom" />
 
+    <div style="background:var(--primary-gradient-soft);border:1.5px solid var(--primary-mid);border-radius:var(--radius-lg);padding:1.5rem;margin:2.5rem 0;">
+      <div style="font-family:var(--font-display);font-weight:800;font-size:1.1rem;margin-bottom:0.5rem;">
+        📷 実際の状態をAIに診断させてみませんか？
+      </div>
+      <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.65;">
+        写真1枚をアップロードするだけで、状態の深刻度と対処法をAIが整理します。無料・登録不要。
+      </p>
+      <a href={diagnosisHref} class="btn btn-primary btn-cta" style="font-size:0.9375rem;">
+        無料で診断してみる →
+      </a>
+    </div>
+
     <AdUnit slot={import.meta.env.PUBLIC_ADSENSE_SLOT_ARTICLE_BOTTOM} />
+
+    <div style="text-align:center;padding:2rem 1rem;border-top:1.5px solid var(--border);margin-top:2rem;">
+      <p style="font-size:0.9375rem;color:var(--text-muted);margin-bottom:1rem;">
+        記事を読んで気になる箇所はありましたか？AIに直接診断させてみましょう。
+      </p>
+      <a href="/" class="btn btn-primary btn-cta">診断ツール一覧を見る →</a>
+    </div>
 
     <nav class="article-back">
       <a href="/guide/">ガイド一覧に戻る</a>
