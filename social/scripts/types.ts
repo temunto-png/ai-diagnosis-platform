@@ -4,13 +4,15 @@ export type PostType =
   | "article-promo"
   | "tips"
   | "rental-aru-aru"
-  | "seasonal";
+  | "seasonal"
+  | "product-promo";
 
 export interface CalendarEntry {
   date: string;         // "2026-04-07"
   platforms: Platform[];
   type: PostType;
   slug: string | null;
+  amazon_keyword?: string;  // product-promo 時に使用
 }
 
 export interface ContentCalendar {

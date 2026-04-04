@@ -13,3 +13,7 @@ new_sqlite_classes = ["RateLimitDurableObject"]
 [[kv_namespaces]]
 binding = "DIAGNOSIS_CACHE_KV"
 id = "588c5a95d45245959b856b67105a5193"
+
+# CPA secrets (set after A8.net approval):
+#   npx wrangler secret put KABI_CPA_URL
+#   npx wrangler secret put DIY_CPA_URL

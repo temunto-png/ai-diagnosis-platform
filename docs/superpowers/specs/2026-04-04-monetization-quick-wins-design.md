@@ -33,7 +33,7 @@
 | `src/configs/kabi-diagnosis.json` | monetization条件に重度ルール追加 |
 | `src/configs/diy-repair.json` | 同上 |
 | `src/lib/monetization.ts` | `applyMonetization` に `cpaUrl?: string` 引数追加、CPA未設定フォールバック実装 |
-| `src/pages/api/[appId]/analyze.ts` | env変数を読んで `applyMonetization` に渡す |
+| `src/lib/diagnosis-service.ts` | `DiagnosisEnvironment` に `KABI_CPA_URL?/DIY_CPA_URL?` 追加、`runDiagnosis` に `appId` 追加して CPA URL を解決・渡す |
 | `wrangler.toml` | 新secretのコメント記録 |
 
 ### JSON config変更
@@ -87,18 +87,47 @@ type === "cpa" の場合の追加ガード:
 
 最終的なURLは `sanitizeCpaUrl()` でHTTPS検証済みのものを使用。
 
-### analyze.ts の変更
+### diagnosis-service.ts の変更
 
+`analyze.ts` は `applyMonetization` を直接呼ばない。`runDiagnosis()` が呼び出し元なので、そこに配線する。
+
+**DiagnosisEnvironment に追加:**
 ```typescript
-// appIdに対応するCPA URLをenvから取得
+export type DiagnosisEnvironment = {
+  // ... 既存フィールド ...
+  KABI_CPA_URL?: string;   // 追加
+  DIY_CPA_URL?: string;    // 追加
+};
+```
+
+**runDiagnosis のシグネチャ変更:**
+```typescript
+export async function runDiagnosis(
+  input: AnalyzeInput,
+  config: AppConfig,
+  env: DiagnosisEnvironment,
+  deps: DiagnosisDependencies,
+  appId: string   // 追加
+): Promise<Record<string, unknown>>
+```
+
+**runDiagnosis 内の CPA URL 解決:**
+```typescript
 const cpaUrl =
   appId === "kabi-diagnosis" ? (env.KABI_CPA_URL ?? undefined)
   : appId === "diy-repair"   ? (env.DIY_CPA_URL ?? undefined)
   : undefined;
 
-// applyMonetizationにcpaUrlを追加で渡す
-const monetization = applyMonetization(result, config.monetization, context, ids, cpaUrl);
+return applyMonetization(
+  diagnosisResult,
+  config.monetization,
+  input.context,
+  { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID },
+  cpaUrl
+);
 ```
+
+`executeDiagnosisRequest` が `appId` を持っているので、`runDiagnosis` 呼び出し箇所に `appId` を追加するだけで `analyze.ts` の変更は不要。
 
 ### Worker secret（手動）
 
@@ -112,7 +141,9 @@ npx wrangler secret put DIY_CPA_URL    # DIY修理向けCPAの承認後に設定
 1. A8.netにログイン → プログラム検索 → 「くらしのマーケット」で申請（ハウスクリーニング全般）
 2. 「おそうじ本舗」をカビ専門として検索・検討
 3. DIY修理向けとして「ホームセンター通販系」も検索
-4. 承認後: 上記 `wrangler secret put` でWorkerに設定 → 即時有効化
+4. 承認後: 上記 `wrangler secret put` でWorkerに設定 → 新規リクエストから有効化
+
+> **KV キャッシュの注意**: キャッシュキーに CPA URL の有無は含まれない。secret 設定前に生成されてキャッシュされた結果は TTL（デフォルト 24h）まで古い affiliate リンクで返される。許容できない場合は `wrangler kv key delete` でパージするか、`DIAGNOSIS_CACHE_TTL_SECONDS=0` で TTL を一時的に短縮する。
 
 ---
 
@@ -229,30 +260,34 @@ https://www.amazon.co.jp/s?k={keyword}&tag=satsutei-22
 
 ### content-calendar.yml に追加する投稿
 
+既存の `posts:` 配下に追記する（トップレベルに追加すると `parseCalendar()` がスキーマ不一致で読めなくなる）。
+
 ```yaml
-- date: "2026-04-10"
-  platforms: [x]
-  type: product-promo
-  slug: null
-  amazon_keyword: "カビキラー カビ取り 塩素系"
+posts:
+  # ... 既存エントリ ...
+  - date: "2026-04-10"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "カビキラー カビ取り 塩素系"
 
-- date: "2026-04-17"
-  platforms: [x]
-  type: product-promo
-  slug: null
-  amazon_keyword: "防カビスプレー 浴室 予防"
+  - date: "2026-04-17"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "防カビスプレー 浴室 予防"
 
-- date: "2026-04-24"
-  platforms: [x]
-  type: product-promo
-  slug: null
-  amazon_keyword: "壁 補修 パテ DIY"
+  - date: "2026-04-24"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "壁 補修 パテ DIY"
 
-- date: "2026-05-01"
-  platforms: [x]
-  type: product-promo
-  slug: null
-  amazon_keyword: "フローリング 傷 補修 マーカー"
+  - date: "2026-05-01"
+    platforms: [x]
+    type: product-promo
+    slug: null
+    amazon_keyword: "フローリング 傷 補修 マーカー"
 ```
 
 ---
@@ -315,7 +350,7 @@ https://www.amazon.co.jp/s?k={keyword}&tag=satsutei-22
 
 ### 関連記事の取得方法
 
-静的レンダリング（`prerender = true`）のため、ビルド時に `getEntry()` で記事データを取得する。appIdをキーとしたハードコードのスラッグリストを使用し、動的ルックアップは行わない。
+`/[appId]/result/[uuid]` は UUID 動的ルートのため `prerender = true` は使えない。プロジェクトが `output: "server"` なので既に SSR であり、`getEntry()` はリクエスト時（サーバーサイド）に呼び出す。appIdをキーとしたハードコードのスラッグリストを使用し、動的ルックアップは行わない。
 
 ```typescript
 const RELATED_ARTICLES: Record<string, string[]> = {
@@ -361,7 +396,7 @@ npx wrangler secret put DIY_CPA_URL
 | ファイル | Action |
 |---------|--------|
 | `src/lib/monetization.ts` | 1 |
-| `src/pages/api/[appId]/analyze.ts` | 1 |
+| `src/lib/diagnosis-service.ts` | 1 |
 | `src/configs/kabi-diagnosis.json` | 1 |
 | `src/configs/diy-repair.json` | 1 |
 | `src/pages/guide/index.astro` | 2 |

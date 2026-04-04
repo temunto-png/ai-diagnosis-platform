@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
+import DiagnosisCTA from "../../components/DiagnosisCTA.astro";
 
 export const prerender = true;
 
@@ -20,6 +21,13 @@ const articles = (await getCollection("guide")).sort(
     </p>
   </div>
 
+  <div class="container">
+    <div class="cta-grid">
+      <DiagnosisCTA diagnosisType="kabi-diagnosis" variant="top" />
+      <DiagnosisCTA diagnosisType="diy-repair" variant="top" />
+    </div>
+  </div>
+
   <div class="container" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="guide-grid">
       {articles.map((article) => (
@@ -36,6 +44,18 @@ const articles = (await getCollection("guide")).sort(
 </Base>
 
 <style>
+.cta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+@media (max-width: 540px) {
+  .cta-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .guide-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

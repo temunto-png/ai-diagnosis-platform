@@ -27,6 +27,8 @@ export type DiagnosisEnvironment = {
   EXPECTED_ORIGIN?: string;
   PUBLIC_GA_ID?: string;
   PUBLIC_ADSENSE_CLIENT_ID?: string;
+  KABI_CPA_URL?: string;
+  DIY_CPA_URL?: string;
 };
 
 export type ClaudeCaller = (
@@ -343,11 +345,18 @@ export function resolveClientIp(request: Request): string | null {
   return null;
 }
 
+function resolveCpaUrl(appId: string, env: DiagnosisEnvironment): string | undefined {
+  if (appId === "kabi-diagnosis") return env.KABI_CPA_URL ?? undefined;
+  if (appId === "diy-repair") return env.DIY_CPA_URL ?? undefined;
+  return undefined;
+}
+
 export async function runDiagnosis(
   input: AnalyzeInput,
   config: AppConfig,
   env: DiagnosisEnvironment,
-  deps: DiagnosisDependencies
+  deps: DiagnosisDependencies,
+  appId: string
 ): Promise<Record<string, unknown>> {
   const prompt = interpolatePrompt(config.prompt, input.context);
   const maxTokens = resolveMaxTokens(env.CLAUDE_DIAGNOSIS_MAX_TOKENS);
@@ -359,7 +368,8 @@ export async function runDiagnosis(
     diagnosisResult,
     config.monetization,
     input.context,
-    { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID }
+    { amazonId: env.AMAZON_ASSOCIATE_ID, rakutenId: env.RAKUTEN_AFFILIATE_ID },
+    resolveCpaUrl(appId, env)
   );
 }
 
@@ -484,7 +494,7 @@ export async function executeDiagnosisRequest(
   }
 
   try {
-    const enriched = await runDiagnosis(input, config, env, deps);
+    const enriched = await runDiagnosis(input, config, env, deps, appId);
     return { ok: true, payload: enriched, cacheKey };
   } catch (error) {
     console.error(
