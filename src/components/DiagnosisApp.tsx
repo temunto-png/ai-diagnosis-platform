@@ -2,6 +2,7 @@ import { useState } from "react";
 import ImageUploader from "./ImageUploader";
 import DiagnosisResult from "./DiagnosisResult";
 import AffiliateBlock from "./AffiliateBlock";
+import ShareBlock from "./ShareBlock";
 import type { DiagnosisData } from "../lib/types";
 
 interface Props {
@@ -81,6 +82,7 @@ export default function DiagnosisApp({ appId, cacheVersion, context = {} }: Prop
       {result && (
         <>
           <DiagnosisResult data={result} appId={appId} />
+          <ShareBlock appId={appId} data={result} />
           {result.monetization && (
             <AffiliateBlock
               monetization={result.monetization}
