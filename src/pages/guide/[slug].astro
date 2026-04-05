@@ -25,6 +25,18 @@ const diagnosisType = kabiCategories.includes(entry.data.category)
 const diagnosisHref = entry.id.includes("kabi") || entry.id.includes("mold")
   ? "/kabi-diagnosis/"
   : "/diy-repair/";
+
+// 関連記事: 同 relatedGroup・pubDate 降順・自記事除外・最大3件
+const allArticles = await getCollection("guide");
+const related = entry.data.relatedGroup
+  ? allArticles
+      .filter(
+        (a) =>
+          a.data.relatedGroup === entry.data.relatedGroup && a.id !== entry.id
+      )
+      .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+      .slice(0, 3)
+  : [];
 ---
 
 <Base title={entry.data.title} description={entry.data.description}>
@@ -57,6 +69,15 @@ const diagnosisHref = entry.id.includes("kabi") || entry.id.includes("mold")
       </p>
     </header>
 
+    {entry.data.summary && (
+      <div class="article-summary">
+        <p class="article-summary-title">この記事でわかること</p>
+        <ul>
+          {entry.data.summary.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    )}
+
     <DiagnosisCTA diagnosisType={diagnosisType} variant="top" />
 
     <div class="article-body">
@@ -88,6 +109,25 @@ const diagnosisHref = entry.id.includes("kabi") || entry.id.includes("mold")
       <a href="/" class="btn btn-primary btn-cta">診断ツール一覧を見る →</a>
     </div>
 
+    {related.length > 0 && (
+      <section class="related-articles">
+        <h3>関連記事</h3>
+        <ul>
+          {related.map((a) => (
+            <li>
+              <a href={`/guide/${a.id}/`}>
+                <span class="related-category">{a.data.category}</span>
+                <span class="related-title">{a.data.title}</span>
+                <span class="related-desc">
+                  {a.data.description.slice(0, 55)}…
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
     <nav class="article-back">
       <a href="/guide/">ガイド一覧に戻る</a>
     </nav>
@@ -103,5 +143,91 @@ const diagnosisHref = entry.id.includes("kabi") || entry.id.includes("mold")
   padding: 0.5rem 0.875rem;
   margin: 0.5rem 0 0;
   border-radius: 0 4px 4px 0;
+}
+
+.article-summary {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+.article-summary-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  margin: 0 0 0.5rem;
+  color: var(--primary);
+}
+.article-summary ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.article-summary li {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: 0.2rem 0;
+  color: var(--text);
+}
+.article-summary li::before {
+  content: "✓ ";
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.related-articles {
+  margin: 2.5rem 0 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1.5px solid var(--border);
+}
+.related-articles h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--text);
+}
+.related-articles ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.related-articles li a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.related-articles li a:hover {
+  border-color: var(--primary);
+}
+.related-category {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 2rem;
+  align-self: flex-start;
+}
+.related-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+.related-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 </style>
