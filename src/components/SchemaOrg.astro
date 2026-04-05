@@ -13,6 +13,7 @@ type Props =
       pubDate: Date;
       updatedDate?: Date;
       url: string;
+      image?: string;
       faq?: FaqItem[];
       howto?: boolean;
       steps?: HowToStep[];
@@ -42,6 +43,7 @@ const articleSchema =
         "@type": "Article",
         headline: props.title,
         description: props.description,
+        image: props.image ?? `${SITE_URL}/og/default.png`,
         datePublished: props.pubDate.toISOString(),
         dateModified: (props.updatedDate ?? props.pubDate).toISOString(),
         url: props.url,
