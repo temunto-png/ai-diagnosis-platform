@@ -27,6 +27,8 @@ const guide = defineCollection({
         })
       )
       .optional(),
+    summary: z.array(z.string()).optional(),
+    relatedGroup: z.string().optional(),
   }),
 });
 
