@@ -30,6 +30,14 @@ const articles = (await getCollection("guide")).sort(
 
   <div class="container" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="guide-grid">
+      <a href="/guide/kabi-complete-guide/" class="guide-card guide-card-pillar">
+        <div class="guide-card-title">カビ完全ガイド</div>
+        <div class="guide-card-desc">浴室・押入れ・壁のカビの原因・除去・予防を完全網羅。洗剤の使い分けから業者依頼の判断基準まで。</div>
+      </a>
+      <a href="/guide/diy-repair-complete-guide/" class="guide-card guide-card-pillar">
+        <div class="guide-card-title">DIY修理完全ガイド</div>
+        <div class="guide-card-desc">床・壁・排水口のトラブルをDIYで解決する方法を網羅。賃貸での注意点と業者依頼の目安も解説。</div>
+      </a>
       {articles.map((article) => (
         <a href={`/guide/${article.id}/`} class="guide-card">
           <div class="guide-card-title">{article.data.title}</div>
@@ -75,6 +83,12 @@ const articles = (await getCollection("guide")).sort(
 .guide-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow);
+}
+.guide-card-pillar {
+  border-color: var(--primary);
+}
+.guide-card-pillar .guide-card-title {
+  color: var(--primary);
 }
 .guide-card-title {
   font-family: var(--font-display);
