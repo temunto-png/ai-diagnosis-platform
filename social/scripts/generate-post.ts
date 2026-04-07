@@ -68,7 +68,7 @@ function buildUserPrompt(
 URLプレースホルダー: {{url}}`;
 }
 
-const DEFAULT_SOCIAL_MAX_TOKENS = 300;
+const DEFAULT_SOCIAL_MAX_TOKENS = 800;
 const MIN_SOCIAL_MAX_TOKENS = 100;
 const MAX_SOCIAL_MAX_TOKENS = 1024;
 
@@ -94,6 +94,11 @@ export async function generatePost(
     messages: [{ role: "user", content: buildUserPrompt(entry, article) }],
   });
 
+  if (message.stop_reason === "max_tokens") {
+    throw new Error(
+      `Claude response truncated (max_tokens=${resolveSocialMaxTokens()}). Increase CLAUDE_SOCIAL_MAX_TOKENS.`
+    );
+  }
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
   const jsonMatch = text.match(/\{[\s\S]*\}/);
