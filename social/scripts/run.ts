@@ -84,11 +84,15 @@ export async function main(today: string): Promise<void> {
     results.push(`X: https://twitter.com/i/web/status/${tweetId}`);
   }
 
-  if (entry.platforms.includes("instagram") && generated.instagram) {
+  const instagramReady =
+    process.env["INSTAGRAM_USER_ID"] && process.env["INSTAGRAM_ACCESS_TOKEN"];
+  if (entry.platforms.includes("instagram") && generated.instagram && instagramReady) {
     const url = buildUrlWithUtm(articleBase, "instagram", entry);
     const caption = generated.instagram.replace("{{url}}", url);
     const postId = await postToInstagram(caption, url);
     results.push(`Instagram: ${postId}`);
+  } else if (entry.platforms.includes("instagram") && !instagramReady) {
+    console.log("Instagram skipped: credentials not configured.");
   }
 
   console.log("Posted:", results.join(", "));
