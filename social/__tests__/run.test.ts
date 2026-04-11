@@ -77,6 +77,8 @@ describe("main", () => {
   });
 
   it("posts to both X and Instagram with platform-specific UTM URLs", async () => {
+    process.env["INSTAGRAM_USER_ID"] = "test_user_id";
+    process.env["INSTAGRAM_ACCESS_TOKEN"] = "test_access_token";
     const entryBoth: CalendarEntry = {
       date: "2026-04-07",
       platforms: ["x", "instagram"],
@@ -102,6 +104,9 @@ describe("main", () => {
       "記事紹介キャプション #賃貸DIY",
       "https://satsu-tei.com/guide/drain-clog-removal/?utm_source=instagram&utm_medium=social&utm_campaign=article-promo&utm_content=drain-clog-removal"
     );
+
+    delete process.env["INSTAGRAM_USER_ID"];
+    delete process.env["INSTAGRAM_ACCESS_TOKEN"];
   });
 
   it("skips article read when slug is null and uses freeform UTM content", async () => {
